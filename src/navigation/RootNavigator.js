@@ -9,12 +9,17 @@ import RegisterScreen from '../screens/auth/RegisterScreen';
 
 // Student Nav
 import StudentTabs from './StudentTabs';
+import CourseDetailsScreen from '../screens/student/CourseDetailsScreen';
 import VideoPlayerScreen from '../screens/student/VideoPlayerScreen';
 import ExamTakingScreen from '../screens/student/ExamTakingScreen';
 import ExamResultScreen from '../screens/student/ExamResultScreen';
 
 // Admin Screens
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
+import AdminLessonsScreen from '../screens/admin/AdminLessonsScreen';
+import AdminExamsScreen from '../screens/admin/AdminExamsScreen';
+import AdminCoursesScreen from '../screens/admin/AdminCoursesScreen';
+import AdminCourseVideosScreen from '../screens/admin/AdminCourseVideosScreen';
 import AdminVideoUploadScreen from '../screens/admin/AdminVideoUploadScreen';
 import AdminExamBuilderScreen from '../screens/admin/AdminExamBuilderScreen';
 import AdminStudentsScreen from '../screens/admin/AdminStudentsScreen';
@@ -42,16 +47,23 @@ export default function RootNavigator() {
           <Stack.Screen name="StudentTabs" component={StudentTabs} />
           {/* Aliases for direct navigation to student tabs from anywhere in the stack */}
           <Stack.Screen name="Home" component={StudentTabs} />
+          <Stack.Screen name="Courses" component={StudentTabs} />
           <Stack.Screen name="Lessons" component={StudentTabs} />
           <Stack.Screen name="Exams" component={StudentTabs} />
           <Stack.Screen name="Profile" component={StudentTabs} />
 
+          {/* Student Sub-Screens */}
+          <Stack.Screen name="CourseDetails" component={CourseDetailsScreen} />
           <Stack.Screen name="VideoPlayer" component={VideoPlayerScreen} />
           <Stack.Screen name="ExamTaking" component={ExamTakingScreen} />
           <Stack.Screen name="ExamResult" component={ExamResultScreen} />
 
           {/* Admin Navigation Screens (Protected inside same app) */}
           <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
+          <Stack.Screen name="AdminLessons" component={AdminLessonsScreen} />
+          <Stack.Screen name="AdminExams" component={AdminExamsScreen} />
+          <Stack.Screen name="AdminCourses" component={AdminCoursesScreen} />
+          <Stack.Screen name="AdminCourseVideos" component={AdminCourseVideosScreen} />
           <Stack.Screen name="AdminVideoUpload" component={AdminVideoUploadScreen} />
           <Stack.Screen name="AdminExamBuilder" component={AdminExamBuilderScreen} />
           <Stack.Screen name="AdminStudents" component={AdminStudentsScreen} />
@@ -60,4 +72,3 @@ export default function RootNavigator() {
     </Stack.Navigator>
   );
 }
-

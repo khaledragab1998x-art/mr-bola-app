@@ -24,13 +24,14 @@ import {
   addLessonCommentApi,
   deleteLessonCommentApi,
 } from '../../api/lessonsApi';
+import { getCourseVideoStreamingApi } from '../../api/coursesApi';
 import { getServerUrl } from '../../api/client';
 import DynamicWatermark from '../../components/DynamicWatermark';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function VideoPlayerScreen({ route, navigation }) {
-  const { lessonId, title } = route.params;
+  const { lessonId, courseId, videoId, title } = route.params;
   const { user, isAdmin } = useAuth();
 
   const [loading, setLoading] = useState(true);
@@ -109,13 +110,19 @@ export default function VideoPlayerScreen({ route, navigation }) {
     };
   }, []);
 
-  // 2. Fetch Lesson Details and HLS Streaming URL
+  // 2. Fetch Lesson or Course Video Details and HLS Streaming URL
   useEffect(() => {
-    async function loadLesson() {
+    async function loadVideo() {
       setLoading(true);
       try {
-        const res = await getLessonDetailsApi(lessonId);
-        if (res.success && res.lesson) {
+        let res;
+        if (courseId && videoId) {
+          res = await getCourseVideoStreamingApi(courseId, videoId);
+        } else if (lessonId) {
+          res = await getLessonDetailsApi(lessonId);
+        }
+
+        if (res && res.success && res.lesson) {
           setLessonData(res.lesson);
 
           const base = await getServerUrl();
@@ -129,7 +136,7 @@ export default function VideoPlayerScreen({ route, navigation }) {
       } catch (err) {
         Alert.alert(
           'تنبيه',
-          err.message || 'تعذر تشغيل هذا الدرس. قد يتطلب تأكيد البريد الإلكتروني.',
+          err.message || 'تعذر تشغيل هذا الفيديو. قد يتطلب تأكيد البريد الإلكتروني.',
           [{ text: 'حسناً', onPress: () => navigation.goBack() }]
         );
       } finally {
@@ -137,13 +144,17 @@ export default function VideoPlayerScreen({ route, navigation }) {
       }
     }
 
-    loadLesson();
-  }, [lessonId]);
+    loadVideo();
+  }, [lessonId, courseId, videoId]);
 
   // Load comments & server URL
   useEffect(() => {
     getServerUrl().then(setServerUrl);
-    loadComments();
+    if (lessonId) {
+      loadComments();
+    } else {
+      setLoadingComments(false);
+    }
   }, [lessonId]);
 
   async function loadComments() {

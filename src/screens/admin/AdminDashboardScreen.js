@@ -139,17 +139,89 @@ export default function AdminDashboardScreen({ navigation }) {
             </View>
 
             <View style={styles.statBox}>
+              <Ionicons name="school" size={24} color={colors.primaryLight} />
+              <Text style={[styles.statValue, { color: colors.primaryLight }]}>
+                {stats?.totalCourses || 0}
+              </Text>
+              <Text style={styles.statLabel}>الكورسات</Text>
+            </View>
+
+            <View style={styles.statBox}>
               <Ionicons name="reader" size={24} color={colors.warning} />
               <Text style={[styles.statValue, { color: colors.warning }]}>
                 {stats?.totalExams || 0}
               </Text>
               <Text style={styles.statLabel}>الامتحانات</Text>
             </View>
+
+            <View style={styles.statBox}>
+              <Ionicons name="clipboard" size={24} color={colors.success} />
+              <Text style={[styles.statValue, { color: colors.success }]}>
+                {stats?.totalExamSubmissions || 0}
+              </Text>
+              <Text style={styles.statLabel}>تسليمات الطلاب</Text>
+            </View>
           </View>
         )}
 
-        {/* Action Buttons */}
-        <Text style={[styles.sectionHeading, { marginTop: 20 }]}>إدارة المحتوى والطلاب</Text>
+        {/* Section 1: Control & Management */}
+        <Text style={[styles.sectionHeading, { marginTop: 22 }]}>التحكم وإدارة المحتوى</Text>
+
+        {/* Manage Lessons */}
+        <TouchableOpacity
+          style={styles.actionCard}
+          onPress={() => navigation.navigate('AdminLessons')}
+          activeOpacity={0.8}
+        >
+          <View style={[styles.actionIconBox, { backgroundColor: 'rgba(2, 132, 199, 0.2)' }]}>
+            <Ionicons name="film-outline" size={26} color={colors.primaryLight} />
+          </View>
+          <View style={styles.actionTextWrap}>
+            <Text style={styles.actionTitle}>إدارة الحصص المرفوعة سابقاً</Text>
+            <Text style={styles.actionSubtitle}>استعراض كافة الحصص، تعديل البيانات، تبديل النشر، أو الحذف</Text>
+          </View>
+          <Ionicons name="chevron-back" size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+
+        {/* Manage Exams */}
+        <TouchableOpacity
+          style={styles.actionCard}
+          onPress={() => navigation.navigate('AdminExams')}
+          activeOpacity={0.8}
+        >
+          <View style={[styles.actionIconBox, { backgroundColor: 'rgba(245, 158, 11, 0.2)' }]}>
+            <Ionicons name="document-text-outline" size={26} color={colors.warning} />
+          </View>
+          <View style={styles.actionTextWrap}>
+            <Text style={styles.actionTitle}>إدارة الامتحانات والأسئلة</Text>
+            <Text style={styles.actionSubtitle}>تعديل الامتحانات، حذف أو إضافة أسئلة جديدة لأي امتحان مضاف</Text>
+          </View>
+          <Ionicons name="chevron-back" size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+
+        {/* Manage Courses (NEW) */}
+        <TouchableOpacity
+          style={[styles.actionCard, { borderColor: colors.primaryLight, borderWidth: 1.5 }]}
+          onPress={() => navigation.navigate('AdminCourses')}
+          activeOpacity={0.8}
+        >
+          <View style={[styles.actionIconBox, { backgroundColor: 'rgba(56, 189, 248, 0.2)' }]}>
+            <Ionicons name="school" size={26} color={colors.primaryLight} />
+          </View>
+          <View style={styles.actionTextWrap}>
+            <View style={{ flexDirection: 'row-reverse', alignItems: 'center', gap: 6 }}>
+              <Text style={styles.actionTitle}>قسم الكورسات والدورات</Text>
+              <View style={styles.newBadge}>
+                <Text style={styles.newBadgeText}>جديد</Text>
+              </View>
+            </View>
+            <Text style={styles.actionSubtitle}>إنشاء كورسات جديدة ورفع فيديوهات حصرية مخصصة للكورس فقط</Text>
+          </View>
+          <Ionicons name="chevron-back" size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
+
+        {/* Section 2: Create & Tools */}
+        <Text style={[styles.sectionHeading, { marginTop: 20 }]}>إضافة محتوى جديد وإدارة الطلاب</Text>
 
         <TouchableOpacity
           style={styles.actionCard}
@@ -160,8 +232,8 @@ export default function AdminDashboardScreen({ navigation }) {
             <Ionicons name="cloud-upload-outline" size={26} color={colors.primaryLight} />
           </View>
           <View style={styles.actionTextWrap}>
-            <Text style={styles.actionTitle}>رفع وضغط فيديو جديد</Text>
-            <Text style={styles.actionSubtitle}>رفع درس من هاتفك وضغطه تلقائياً وتوليد البث الآمن</Text>
+            <Text style={styles.actionTitle}>رفع وضغط حصة جديدة</Text>
+            <Text style={styles.actionSubtitle}>رفع درس من هاتفك وضغطه تلقائياً وتوليد البث الآمن (HLS)</Text>
           </View>
           <Ionicons name="chevron-back" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
@@ -175,8 +247,8 @@ export default function AdminDashboardScreen({ navigation }) {
             <Ionicons name="create-outline" size={26} color={colors.warning} />
           </View>
           <View style={styles.actionTextWrap}>
-            <Text style={styles.actionTitle}>إنشاء امتحان وإضافة أسئلة</Text>
-            <Text style={styles.actionSubtitle}>إضافة أسئلة اختيار من متعدد، رفع رسومات، وضبط المؤقت</Text>
+            <Text style={styles.actionTitle}>معالج إنشاء امتحان جديد</Text>
+            <Text style={styles.actionSubtitle}>إنشاء امتحان فوري وإضافة بنك أسئلة باختيارات متعددة</Text>
           </View>
           <Ionicons name="chevron-back" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
@@ -346,5 +418,16 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
     textAlign: 'right',
+  },
+  newBadge: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  newBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 });

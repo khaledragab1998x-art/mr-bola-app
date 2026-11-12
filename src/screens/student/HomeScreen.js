@@ -16,6 +16,7 @@ import VerificationBanner from '../../components/VerificationBanner';
 import OtpVerificationModal from '../auth/OtpVerificationModal';
 import { getChaptersWithLessonsApi } from '../../api/lessonsApi';
 import { getExamsListApi } from '../../api/examsApi';
+import { getCoursesListApi } from '../../api/coursesApi';
 import { getServerUrl } from '../../api/client';
 
 export default function HomeScreen({ navigation }) {
@@ -25,6 +26,7 @@ export default function HomeScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [recentLessons, setRecentLessons] = useState([]);
   const [activeExams, setActiveExams] = useState([]);
+  const [featuredCourses, setFeaturedCourses] = useState([]);
   const [serverUrl, setServerUrl] = useState('');
 
   useEffect(() => {
@@ -35,9 +37,10 @@ export default function HomeScreen({ navigation }) {
   async function loadHomeData() {
     setLoading(true);
     try {
-      const [chaptersRes, examsRes] = await Promise.all([
+      const [chaptersRes, examsRes, coursesRes] = await Promise.all([
         getChaptersWithLessonsApi().catch(() => ({ data: [] })),
-        getExamsListApi().catch(() => ({ data: [] }))
+        getExamsListApi().catch(() => ({ data: [] })),
+        getCoursesListApi().catch(() => ({ data: [] })),
       ]);
 
       // Flatten lessons to find newest ones
@@ -53,6 +56,10 @@ export default function HomeScreen({ navigation }) {
 
       if (examsRes && examsRes.data) {
         setActiveExams(examsRes.data.slice(0, 2));
+      }
+
+      if (coursesRes && coursesRes.data) {
+        setFeaturedCourses(coursesRes.data.slice(0, 2));
       }
     } catch (e) {
       console.warn('Home data load error:', e);
@@ -211,6 +218,64 @@ export default function HomeScreen({ navigation }) {
                   </Text>
                 </View>
               </View>
+            </TouchableOpacity>
+          ))
+        )}
+
+        {/* Featured Courses Section (NEW) */}
+        <View style={[styles.sectionHeader, { marginTop: 24 }]}>
+          <TouchableOpacity onPress={() => navigation.navigate('Courses')}>
+            <Text style={styles.seeAllText}>عرض الكل</Text>
+          </TouchableOpacity>
+          <Text style={styles.sectionTitle}>الكورسات والدورات الشاملة 🎓</Text>
+        </View>
+
+        {featuredCourses.length === 0 ? (
+          <TouchableOpacity
+            style={styles.courseBannerCard}
+            onPress={() => navigation.navigate('Courses')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.courseBannerIcon}>
+              <Ionicons name="school-outline" size={28} color={colors.primaryLight} />
+            </View>
+            <View style={styles.courseBannerText}>
+              <Text style={styles.courseBannerTitle}>استكشف كورسات ومراجعات الفيزياء</Text>
+              <Text style={styles.courseBannerSub}>شروحات مركزة وأفكار متقدمة للثانوية العامة</Text>
+            </View>
+            <Ionicons name="chevron-back" size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+        ) : (
+          featuredCourses.map((c) => (
+            <TouchableOpacity
+              key={c.id}
+              style={styles.homeCourseCard}
+              onPress={() => navigation.navigate('CourseDetails', { courseId: c.id, title: c.title })}
+              activeOpacity={0.85}
+            >
+              <View style={styles.homeCourseInfo}>
+                <Text style={styles.homeCourseTitle} numberOfLines={1}>{c.title}</Text>
+                <Text style={styles.homeCourseSub} numberOfLines={1}>{c.description || 'كورس فيزياء متخصص'}</Text>
+                <View style={styles.homeCourseMeta}>
+                  <Text style={styles.homeCourseCount}>{c.videos_count || 0} محاضرات</Text>
+                  <Text style={styles.homeCoursePrice}>{Number(c.price) > 0 ? `${c.price} ج.م` : 'مجاني'}</Text>
+                </View>
+              </View>
+              {c.thumbnail_url ? (
+                <Image
+                  source={{
+                    uri: c.thumbnail_url.startsWith('http')
+                      ? c.thumbnail_url
+                      : `${serverUrl}${c.thumbnail_url}`,
+                  }}
+                  style={styles.homeCourseThumb}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.homeCourseThumbPlaceholder}>
+                  <Ionicons name="school" size={24} color={colors.primaryLight} />
+                </View>
+              )}
             </TouchableOpacity>
           ))
         )}
@@ -577,5 +642,95 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 8,
     textAlign: 'center',
+  },
+  courseBannerCard: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    marginVertical: 8,
+    gap: 12,
+  },
+  courseBannerIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 12,
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  courseBannerText: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  courseBannerTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+    textAlign: 'right',
+  },
+  courseBannerSub: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    textAlign: 'right',
+    marginTop: 3,
+  },
+  homeCourseCard: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    marginBottom: 10,
+    gap: 12,
+  },
+  homeCourseThumb: {
+    width: 72,
+    height: 72,
+    borderRadius: 10,
+  },
+  homeCourseThumbPlaceholder: {
+    width: 72,
+    height: 72,
+    borderRadius: 10,
+    backgroundColor: 'rgba(2, 132, 199, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  homeCourseInfo: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  homeCourseTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+    textAlign: 'right',
+  },
+  homeCourseSub: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    textAlign: 'right',
+    marginTop: 2,
+  },
+  homeCourseMeta: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 6,
+  },
+  homeCourseCount: {
+    fontSize: 11,
+    color: colors.primaryLight,
+  },
+  homeCoursePrice: {
+    fontSize: 11,
+    color: colors.success,
+    fontWeight: 'bold',
   },
 });

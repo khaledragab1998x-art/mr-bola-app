@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 
 import HomeScreen from '../screens/student/HomeScreen';
+import CoursesScreen from '../screens/student/CoursesScreen';
 import LessonsScreen from '../screens/student/LessonsScreen';
 import ExamsScreen from '../screens/student/ExamsScreen';
 import ProfileScreen from '../screens/student/ProfileScreen';
@@ -39,7 +40,7 @@ export default function StudentTabs() {
         tabBarActiveTintColor: colors.primaryLight,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '700',
           marginTop: 2,
         },
@@ -54,7 +55,17 @@ export default function StudentTabs() {
         options={{
           tabBarLabel: 'الرئيسية',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+            <Ionicons name="home-outline" size={size - 2} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Courses"
+        component={CoursesScreen}
+        options={{
+          tabBarLabel: 'الكورسات',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="school-outline" size={size - 2} color={color} />
           ),
         }}
       />
@@ -64,7 +75,7 @@ export default function StudentTabs() {
         options={{
           tabBarLabel: 'الحصص',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="play-circle-outline" size={size} color={color} />
+            <Ionicons name="play-circle-outline" size={size - 2} color={color} />
           ),
         }}
       />
@@ -74,7 +85,7 @@ export default function StudentTabs() {
         options={{
           tabBarLabel: 'الامتحانات',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="document-text-outline" size={size} color={color} />
+            <Ionicons name="document-text-outline" size={size - 2} color={color} />
           ),
         }}
       />
@@ -84,7 +95,7 @@ export default function StudentTabs() {
         options={{
           tabBarLabel: 'حسابي',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
+            <Ionicons name="person-outline" size={size - 2} color={color} />
           ),
         }}
       />
