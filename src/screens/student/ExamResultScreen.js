@@ -9,6 +9,17 @@ export default function ExamResultScreen({ route, navigation }) {
   const finalPercentage = percentage !== undefined ? percentage : Math.round((score / totalMarks) * 100);
   const isPassed = passed !== undefined ? passed : finalPercentage >= 50;
 
+  function handleGoHome() {
+    try {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'StudentTabs', params: { screen: 'Home' } }],
+      });
+    } catch (e) {
+      navigation.navigate('StudentTabs', { screen: 'Home' });
+    }
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -46,7 +57,7 @@ export default function ExamResultScreen({ route, navigation }) {
         {/* Home Button */}
         <TouchableOpacity
           style={styles.doneBtn}
-          onPress={() => navigation.navigate('Home')}
+          onPress={handleGoHome}
           activeOpacity={0.8}
         >
           <Text style={styles.doneBtnText}>العودة للرئيسية</Text>

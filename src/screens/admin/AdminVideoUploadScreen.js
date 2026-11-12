@@ -86,14 +86,15 @@ export default function AdminVideoUploadScreen({ navigation }) {
       formData.append('is_free_preview', isFree ? 'true' : 'false');
 
       // Append video file
-      const fileUri = Platform.OS === 'ios' ? videoFile.uri.replace('file://', '') : videoFile.uri;
       formData.append('video', {
-        uri: fileUri,
+        uri: videoFile.uri,
         name: videoFile.name || 'lecture.mp4',
         type: videoFile.mimeType || 'video/mp4',
       });
 
-      const res = await uploadLessonVideoApi(formData);
+      const res = await uploadLessonVideoApi(formData, (uploadPercent) => {
+        setProcessingProgress(uploadPercent);
+      });
 
       if (res.success && res.lessonId) {
         setProcessingLessonId(res.lessonId);

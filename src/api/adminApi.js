@@ -1,9 +1,10 @@
 import { apiRequest } from './client';
 
-export async function uploadLessonVideoApi(formData) {
+export async function uploadLessonVideoApi(formData, onProgress) {
   return apiRequest('/api/admin/upload-video', {
     method: 'POST',
     body: formData,
+    onProgress,
   });
 }
 

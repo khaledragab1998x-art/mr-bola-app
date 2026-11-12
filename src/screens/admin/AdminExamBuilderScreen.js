@@ -100,9 +100,9 @@ export default function AdminExamBuilderScreen({ navigation }) {
 
       if (diagramImage) {
         formData.append('image', {
-          uri: Platform.OS === 'ios' ? diagramImage.uri.replace('file://', '') : diagramImage.uri,
-          name: 'diagram.jpg',
-          type: 'image/jpeg',
+          uri: diagramImage.uri,
+          name: diagramImage.fileName || 'diagram.jpg',
+          type: diagramImage.mimeType || 'image/jpeg',
         });
       }
 

@@ -40,6 +40,12 @@ export default function RootNavigator() {
         // App Stack (Both Students and Admin)
         <>
           <Stack.Screen name="StudentTabs" component={StudentTabs} />
+          {/* Aliases for direct navigation to student tabs from anywhere in the stack */}
+          <Stack.Screen name="Home" component={StudentTabs} />
+          <Stack.Screen name="Lessons" component={StudentTabs} />
+          <Stack.Screen name="Exams" component={StudentTabs} />
+          <Stack.Screen name="Profile" component={StudentTabs} />
+
           <Stack.Screen name="VideoPlayer" component={VideoPlayerScreen} />
           <Stack.Screen name="ExamTaking" component={ExamTakingScreen} />
           <Stack.Screen name="ExamResult" component={ExamResultScreen} />

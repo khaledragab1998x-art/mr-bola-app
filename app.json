@@ -27,13 +27,18 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       }
     },
+    "androidNavigationBar": {
+      "backgroundColor": "#121A30",
+      "barStyle": "light-content"
+    },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
         "projectId": "69ff4f5e-9126-4a3c-be73-8e32764cb4b1"
-      }
+      },
+      "EXPO_PUBLIC_USE_RN_FETCH": "1"
     }
   }
 }
