@@ -53,11 +53,14 @@ export default function AdminCoursesScreen({ navigation }) {
     setLoading(true);
     try {
       const res = await getAllCoursesAdminApi();
-      if (res.success) {
+      if (res && res.success) {
         setCourses(res.data || []);
+      } else {
+        setCourses([]);
       }
     } catch (e) {
-      Alert.alert('خطأ', 'فشل تحميل قائمة الكورسات');
+      console.warn('Load courses error:', e?.message);
+      setCourses([]);
     } finally {
       setLoading(false);
       setRefreshing(false);

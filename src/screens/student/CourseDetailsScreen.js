@@ -37,12 +37,12 @@ export default function CourseDetailsScreen({ route, navigation }) {
     setLoading(true);
     try {
       const res = await getCourseDetailsApi(courseId);
-      if (res.success) {
+      if (res && res.success) {
         setCourse(res.course);
         setVideos(res.videos || []);
       }
     } catch (e) {
-      Alert.alert('خطأ', 'فشل تحميل بيانات الكورس');
+      console.warn('Load course details error:', e?.message);
     } finally {
       setLoading(false);
       setRefreshing(false);

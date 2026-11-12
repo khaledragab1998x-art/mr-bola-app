@@ -36,12 +36,14 @@ export default function CoursesScreen({ navigation }) {
     setLoading(true);
     try {
       const res = await getCoursesListApi();
-      if (res.success) {
+      if (res && res.success) {
         setCourses(res.data || []);
+      } else {
+        setCourses([]);
       }
     } catch (e) {
-      console.warn('Load courses error:', e);
-      Alert.alert('خطأ', 'فشل تحميل قائمة الكورسات');
+      console.warn('Load courses error:', e?.message);
+      setCourses([]);
     } finally {
       setLoading(false);
       setRefreshing(false);

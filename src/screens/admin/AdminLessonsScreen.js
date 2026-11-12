@@ -46,19 +46,44 @@ export default function AdminLessonsScreen({ navigation }) {
   async function loadData() {
     setLoading(true);
     try {
-      const [lessonsRes, chaptersRes] = await Promise.all([
-        getAllLessonsAdminApi(),
-        getChaptersWithLessonsApi().catch(() => ({ data: [] })),
-      ]);
+      let lessonsList = [];
+      let chaptersList = [];
 
-      if (lessonsRes.success) {
-        setLessons(lessonsRes.data || []);
+      // 1. Try dedicated admin lessons endpoint
+      try {
+        const res = await getAllLessonsAdminApi();
+        if (res && res.success && Array.isArray(res.data)) {
+          lessonsList = res.data;
+        }
+      } catch (adminErr) {
+        console.warn('Admin lessons endpoint not reachable, trying standard lessons API:', adminErr?.message);
       }
-      if (chaptersRes && chaptersRes.data) {
-        setChapters(chaptersRes.data || []);
+
+      // 2. Fetch chapters & fallback lessons
+      const chaptersRes = await getChaptersWithLessonsApi().catch(() => ({ data: [], lessons: [] }));
+      if (chaptersRes) {
+        if (Array.isArray(chaptersRes.data)) {
+          chaptersList = chaptersRes.data;
+        }
+
+        // If admin endpoint was unavailable (404), extract lessons from chaptersRes
+        if (lessonsList.length === 0) {
+          if (Array.isArray(chaptersRes.lessons) && chaptersRes.lessons.length > 0) {
+            lessonsList = chaptersRes.lessons;
+          } else if (Array.isArray(chaptersRes.data)) {
+            chaptersRes.data.forEach((chap) => {
+              if (chap.lessons && Array.isArray(chap.lessons)) {
+                lessonsList.push(...chap.lessons);
+              }
+            });
+          }
+        }
       }
+
+      setLessons(lessonsList);
+      setChapters(chaptersList);
     } catch (e) {
-      Alert.alert('خطأ', 'فشل تحميل قائمة الحصص المرفوعة');
+      console.warn('Load lessons general error:', e);
     } finally {
       setLoading(false);
       setRefreshing(false);

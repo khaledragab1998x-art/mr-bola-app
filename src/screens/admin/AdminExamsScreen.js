@@ -24,6 +24,7 @@ import {
   deleteQuestionApi,
   addQuestionApi,
 } from '../../api/adminApi';
+import { getExamsListApi, getExamForTakingApi } from '../../api/examsApi';
 import { getServerUrl } from '../../api/client';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -70,12 +71,29 @@ export default function AdminExamsScreen({ navigation }) {
   async function loadExams() {
     setLoading(true);
     try {
-      const res = await getAllExamsAdminApi();
-      if (res.success) {
-        setExams(res.data || []);
+      let examsList = [];
+
+      // 1. Try dedicated admin exams API
+      try {
+        const res = await getAllExamsAdminApi();
+        if (res && res.success && Array.isArray(res.data)) {
+          examsList = res.data;
+        }
+      } catch (adminErr) {
+        console.warn('Admin exams endpoint not reachable, trying standard exams API:', adminErr?.message);
       }
+
+      // 2. Fallback to /api/exams if admin endpoint returned 404
+      if (examsList.length === 0) {
+        const fallbackRes = await getExamsListApi().catch(() => ({ data: [] }));
+        if (fallbackRes && Array.isArray(fallbackRes.data)) {
+          examsList = fallbackRes.data;
+        }
+      }
+
+      setExams(examsList);
     } catch (e) {
-      Alert.alert('خطأ', 'فشل تحميل قائمة الامتحانات');
+      console.warn('Load exams general error:', e);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -180,12 +198,29 @@ export default function AdminExamsScreen({ navigation }) {
     setLoadingQuestions(true);
 
     try {
-      const res = await getExamDetailsAdminApi(exam.id);
-      if (res.success && res.exam) {
-        setExamQuestions(res.exam.questions || []);
+      let questions = [];
+
+      // 1. Try dedicated admin details endpoint
+      try {
+        const res = await getExamDetailsAdminApi(exam.id);
+        if (res && res.success && res.exam && Array.isArray(res.exam.questions)) {
+          questions = res.exam.questions;
+        }
+      } catch (adminErr) {
+        console.warn('Admin exam details not reachable, trying standard exam endpoint:', adminErr?.message);
       }
+
+      // 2. Fallback to /api/exams/:id
+      if (questions.length === 0) {
+        const fallbackRes = await getExamForTakingApi(exam.id).catch(() => null);
+        if (fallbackRes && fallbackRes.success && fallbackRes.exam && Array.isArray(fallbackRes.exam.questions)) {
+          questions = fallbackRes.exam.questions;
+        }
+      }
+
+      setExamQuestions(questions);
     } catch (e) {
-      Alert.alert('خطأ', 'فشل جلب أسئلة الامتحان');
+      console.warn('Questions manager error:', e);
     } finally {
       setLoadingQuestions(false);
     }

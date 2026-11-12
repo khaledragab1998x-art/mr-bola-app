@@ -82,11 +82,11 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
     setLoading(true);
     try {
       const res = await getCourseDetailsAdminApi(courseId);
-      if (res.success) {
+      if (res && res.success) {
         setVideos(res.videos || []);
       }
     } catch (e) {
-      Alert.alert('خطأ', 'فشل تحميل فيديوهات الكورس');
+      console.warn('Load course videos error:', e?.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
