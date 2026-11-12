@@ -2,6 +2,7 @@
   "expo": {
     "name": "مستر بولا - كينج الفيزياء",
     "slug": "mr-bola-physics",
+    "owner": "mr-bola",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
