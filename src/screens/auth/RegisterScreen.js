@@ -16,6 +16,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { useAuth } from '../../context/AuthContext';
 
+function cleanCredential(str) {
+  if (!str) return '';
+  return str
+    .trim()
+    .replace(/[\u200B-\u200D\uFEFF\u00A0\u2000-\u200A\u202F\u205F]/g, '')
+    .replace(/[\u0660-\u0669]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x0660 + 48))
+    .replace(/[\u06F0-\u06F9]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x06F0 + 48));
+}
+
 export default function RegisterScreen({ navigation }) {
   const { register } = useAuth();
   const [name, setName] = useState('');
@@ -26,19 +35,24 @@ export default function RegisterScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
 
   async function handleRegister() {
-    if (!name.trim() || !email.trim() || !phone.trim() || !password) {
+    const cleanName = name.trim();
+    const cleanEmail = cleanCredential(email).toLowerCase();
+    const cleanPhone = cleanCredential(phone);
+    const cleanPassword = cleanCredential(password);
+
+    if (!cleanName || !cleanEmail || !cleanPhone || !cleanPassword) {
       Alert.alert('تنبيه', 'برجاء ملء جميع البيانات المطلوبة');
       return;
     }
 
-    if (password.length < 6) {
+    if (cleanPassword.length < 6) {
       Alert.alert('تنبيه', 'يجب أن لا تقل كلمة المرور عن 6 أحرف أو أرقام');
       return;
     }
 
     setLoading(true);
     try {
-      await register(name.trim(), email.trim(), password, phone.trim());
+      await register(cleanName, cleanEmail, cleanPassword, cleanPhone);
       // RootNavigator automatically redirects to StudentTabs and persists session
     } catch (error) {
       Alert.alert('فشل إنشاء الحساب', error.message || 'حدث خطأ أثناء التسجيل');
@@ -109,6 +123,8 @@ export default function RegisterScreen({ navigation }) {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                autoCorrect={false}
+                spellCheck={false}
                 textAlign="right"
               />
             </View>
@@ -126,6 +142,8 @@ export default function RegisterScreen({ navigation }) {
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="phone-pad"
+                autoCorrect={false}
+                spellCheck={false}
                 textAlign="right"
               />
             </View>
@@ -149,6 +167,9 @@ export default function RegisterScreen({ navigation }) {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                spellCheck={false}
                 textAlign="right"
               />
               <Ionicons name="lock-closed-outline" size={20} color={colors.textSecondary} style={styles.inputIcon} />

@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,11 +22,23 @@ export default function ProfileScreen({ navigation }) {
   const { user, isEmailVerified, isAdmin, logout, refreshProfile, updateUser } = useAuth();
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [serverUrl, setServerUrl] = useState('');
 
   useEffect(() => {
     getServerUrl().then(setServerUrl);
   }, []);
+
+  async function onRefresh() {
+    setRefreshing(true);
+    try {
+      await refreshProfile();
+    } catch (e) {
+      console.warn('Refresh profile error:', e);
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   function confirmLogout() {
     Alert.alert('تسجيل الخروج', 'هل أنت متأكد من رغبتك في تسجيل الخروج من التطبيق؟', [
@@ -151,7 +164,17 @@ export default function ProfileScreen({ navigation }) {
         <Text style={styles.headerTitle}>الملف الشخصي للطالب</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
+      >
         {/* User Card with Avatar Upload */}
         <View style={styles.profileCard}>
           <View style={styles.avatarWrapper}>

@@ -16,6 +16,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { useAuth } from '../../context/AuthContext';
 
+function cleanCredential(str) {
+  if (!str) return '';
+  return str
+    .trim()
+    // Remove zero-width spaces, non-breaking spaces, BOM, etc.
+    .replace(/[\u200B-\u200D\uFEFF\u00A0\u2000-\u200A\u202F\u205F]/g, '')
+    // Normalize Arabic-Indic digits (٠-٩) to standard ASCII (0-9)
+    .replace(/[\u0660-\u0669]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x0660 + 48))
+    // Normalize Eastern Arabic-Indic digits (۰-۹) to standard ASCII (0-9)
+    .replace(/[\u06F0-\u06F9]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x06F0 + 48));
+}
+
 export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
@@ -24,14 +36,17 @@ export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
 
   async function handleLogin() {
-    if (!email.trim() || !password) {
+    const cleanEmail = cleanCredential(email).toLowerCase();
+    const cleanPassword = cleanCredential(password);
+
+    if (!cleanEmail || !cleanPassword) {
       Alert.alert('تنبيه', 'برجاء إدخال البريد الإلكتروني وكلمة المرور');
       return;
     }
 
     setLoading(true);
     try {
-      await login(email.trim(), password);
+      await login(cleanEmail, cleanPassword);
     } catch (error) {
       Alert.alert('فشل تسجيل الدخول', error.message || 'البريد أو كلمة المرور غير صحيحة');
     } finally {
@@ -89,6 +104,8 @@ export default function LoginScreen({ navigation }) {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                autoCorrect={false}
+                spellCheck={false}
                 textAlign="right"
               />
             </View>
@@ -112,6 +129,9 @@ export default function LoginScreen({ navigation }) {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                spellCheck={false}
                 textAlign="right"
               />
               <Ionicons name="lock-closed-outline" size={20} color={colors.textSecondary} style={styles.inputIcon} />
@@ -143,7 +163,14 @@ export default function LoginScreen({ navigation }) {
 
         {/* Demo Fast Logins for Testing */}
         <View style={styles.quickAccessRow}>
-        
+          <TouchableOpacity
+            style={styles.adminQuickBtn}
+            onPress={fillAdminDemo}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="shield-checkmark-outline" size={16} color={colors.primaryLight} />
+            <Text style={styles.adminQuickBtnText}>ملء بيانات حساب مستر بولا (Admin)</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -341,6 +368,24 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 11,
     fontWeight: '600',
+  },
+  adminQuickBtn: {
+    flex: 1,
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(56, 189, 248, 0.08)',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.25)',
+    gap: 8,
+  },
+  adminQuickBtnText: {
+    color: colors.primaryLight,
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   serverConfigToggle: {
     flexDirection: 'row',
