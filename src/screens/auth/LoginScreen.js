@@ -56,7 +56,7 @@ export default function LoginScreen({ navigation }) {
 
   // Quick fill for testing
   function fillAdminDemo() {
-    setEmail('admin@mrbola.com');
+    setEmail('admin@mrpoula.com');
     setPassword('AdminPassword123!');
   }
 

@@ -2,14 +2,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 // Production API Server
-export const DEFAULT_SERVER_URL = 'https://bola.gridmotion-dfc.com';
+export const DEFAULT_SERVER_URL = 'https://mrpoula.com';
 
 export async function getServerUrl() {
+  const custom = await AsyncStorage.getItem('@server_url');
+  if (custom) return custom;
   return DEFAULT_SERVER_URL;
 }
 
 export async function setServerUrl(newUrl) {
-  // Kept for interface compatibility if needed
+  if (newUrl) {
+    await AsyncStorage.setItem('@server_url', newUrl);
+  } else {
+    await AsyncStorage.removeItem('@server_url');
+  }
 }
 
 export async function getDeviceId() {
