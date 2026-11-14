@@ -53,12 +53,14 @@ export default function AdminExamsScreen({ navigation }) {
 
   // Add Question Sub-form in Questions Modal
   const [showAddQuestion, setShowAddQuestion] = useState(false);
+  const [questionType, setQuestionType] = useState('mcq'); // 'mcq' | 'true_false'
   const [newQuestionText, setNewQuestionText] = useState('');
   const [choiceA, setChoiceA] = useState('');
   const [choiceB, setChoiceB] = useState('');
   const [choiceC, setChoiceC] = useState('');
   const [choiceD, setChoiceD] = useState('');
   const [correctChoiceIdx, setCorrectChoiceIdx] = useState(0);
+  const [tfCorrect, setTfCorrect] = useState('true'); // 'true' | 'false'
   const [questionMarks, setQuestionMarks] = useState('1');
   const [diagramImage, setDiagramImage] = useState(null);
   const [savingQuestion, setSavingQuestion] = useState(false);
@@ -73,17 +75,15 @@ export default function AdminExamsScreen({ navigation }) {
     try {
       let examsList = [];
 
-      // 1. Try dedicated admin exams API
       try {
         const res = await getAllExamsAdminApi();
         if (res && res.success && Array.isArray(res.data)) {
           examsList = res.data;
         }
       } catch (adminErr) {
-        console.warn('Admin exams endpoint not reachable, trying standard exams API:', adminErr?.message);
+        console.warn('Admin exams endpoint not reachable:', adminErr?.message);
       }
 
-      // 2. Fallback to /api/exams if admin endpoint returned 404
       if (examsList.length === 0) {
         const fallbackRes = await getExamsListApi().catch(() => ({ data: [] }));
         if (fallbackRes && Array.isArray(fallbackRes.data)) {
@@ -93,7 +93,7 @@ export default function AdminExamsScreen({ navigation }) {
 
       setExams(examsList);
     } catch (e) {
-      console.warn('Load exams general error:', e);
+      console.warn('Load exams error:', e);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -112,13 +112,13 @@ export default function AdminExamsScreen({ navigation }) {
         setExams((prev) =>
           prev.map((e) => (e.id === exam.id ? { ...e, is_published: originalStatus } : e))
         );
-        Alert.alert('خطأ', 'فشل تحديث حالة نشر الامتحان');
+        Alert.alert('Error', 'Failed to update exam publish status');
       }
     } catch (e) {
       setExams((prev) =>
         prev.map((e) => (e.id === exam.id ? { ...e, is_published: originalStatus } : e))
       );
-      Alert.alert('خطأ', 'تعذر الاتصال بالسيرفر');
+      Alert.alert('Error', 'Cannot connect to server');
     }
   }
 
@@ -134,7 +134,7 @@ export default function AdminExamsScreen({ navigation }) {
 
   async function handleSaveExamEdit() {
     if (!editTitle.trim()) {
-      Alert.alert('تنبيه', 'عنوان الامتحان مطلوب');
+      Alert.alert('Notice', 'Exam title is required');
       return;
     }
 
@@ -150,14 +150,14 @@ export default function AdminExamsScreen({ navigation }) {
       });
 
       if (res.success) {
-        Alert.alert('تم بنجاح', 'تم تحديث بيانات الامتحان');
+        Alert.alert('Success', 'Exam updated successfully');
         setEditExamModal(false);
         loadExams();
       } else {
-        Alert.alert('خطأ', res.message || 'فشل التحديث');
+        Alert.alert('Error', res.message || 'Update failed');
       }
     } catch (e) {
-      Alert.alert('خطأ', 'تعذر حفظ التعديلات');
+      Alert.alert('Error', 'Could not save exam settings');
     } finally {
       setSavingEdit(false);
     }
@@ -165,24 +165,24 @@ export default function AdminExamsScreen({ navigation }) {
 
   function handleDeleteExam(exam) {
     Alert.alert(
-      'تأكيد الحذف',
-      `هل أنت متأكد من حذف امتحان "${exam.title}" وكافة أسئلته وإجابات الطلاب؟`,
+      'Delete Exam',
+      `Are you sure you want to delete "${exam.title}" and all its questions and student submissions?`,
       [
-        { text: 'إلغاء', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: 'نعم، احذف',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
               const res = await deleteExamApi(exam.id);
               if (res.success) {
-                Alert.alert('تم الحذف', 'تم حذف الامتحان بنجاح');
+                Alert.alert('Deleted', 'Exam deleted successfully');
                 setExams((prev) => prev.filter((e) => e.id !== exam.id));
               } else {
-                Alert.alert('خطأ', res.message || 'فشل حذف الامتحان');
+                Alert.alert('Error', res.message || 'Failed to delete exam');
               }
             } catch (e) {
-              Alert.alert('خطأ', 'فشل حذف الامتحان');
+              Alert.alert('Error', 'Failed to delete exam');
             }
           },
         },
@@ -190,7 +190,6 @@ export default function AdminExamsScreen({ navigation }) {
     );
   }
 
-  // Open Questions Manager for an Exam
   async function openQuestionsManager(exam) {
     setSelectedExam(exam);
     setQuestionsModal(true);
@@ -200,17 +199,15 @@ export default function AdminExamsScreen({ navigation }) {
     try {
       let questions = [];
 
-      // 1. Try dedicated admin details endpoint
       try {
         const res = await getExamDetailsAdminApi(exam.id);
         if (res && res.success && res.exam && Array.isArray(res.exam.questions)) {
           questions = res.exam.questions;
         }
       } catch (adminErr) {
-        console.warn('Admin exam details not reachable, trying standard exam endpoint:', adminErr?.message);
+        console.warn('Admin exam details not reachable:', adminErr?.message);
       }
 
-      // 2. Fallback to /api/exams/:id
       if (questions.length === 0) {
         const fallbackRes = await getExamForTakingApi(exam.id).catch(() => null);
         if (fallbackRes && fallbackRes.success && fallbackRes.exam && Array.isArray(fallbackRes.exam.questions)) {
@@ -228,31 +225,30 @@ export default function AdminExamsScreen({ navigation }) {
 
   async function handleDeleteQuestion(question) {
     Alert.alert(
-      'تأكيد حذف السؤال',
-      'هل أنت متأكد من رغبتك في حذف هذا السؤال؟',
+      'Delete Question',
+      'Are you sure you want to delete this question?',
       [
-        { text: 'إلغاء', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: 'حذف',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
               const res = await deleteQuestionApi(question.id);
               if (res.success) {
                 setExamQuestions((prev) => prev.filter((q) => q.id !== question.id));
-                // Update question count in main list
                 setExams((prev) =>
                   prev.map((e) =>
                     e.id === selectedExam.id
-                      ? { ...e, questions_count: Math.max(0, e.questions_count - 1) }
+                      ? { ...e, questions_count: Math.max(0, (e.questions_count || 1) - 1) }
                       : e
                   )
                 );
               } else {
-                Alert.alert('خطأ', res.message || 'فشل حذف السؤال');
+                Alert.alert('Error', res.message || 'Failed to delete question');
               }
             } catch (e) {
-              Alert.alert('خطأ', 'فشل حذف السؤال');
+              Alert.alert('Error', 'Failed to delete question');
             }
           },
         },
@@ -273,22 +269,35 @@ export default function AdminExamsScreen({ navigation }) {
   }
 
   async function handleAddQuestionToExam() {
-    if (!newQuestionText.trim() || !choiceA.trim() || !choiceB.trim() || !choiceC.trim() || !choiceD.trim()) {
-      Alert.alert('تنبيه', 'برجاء كتابة نص السؤال والخيارات الأربعة كاملة');
+    if (!newQuestionText.trim()) {
+      Alert.alert('Notice', 'Please write the question text');
       return;
     }
 
-    setSavingQuestion(true);
-    try {
-      const choices = [
+    let choices = [];
+    if (questionType === 'true_false') {
+      choices = [
+        { text: 'True', is_correct: tfCorrect === 'true' },
+        { text: 'False', is_correct: tfCorrect === 'false' },
+      ];
+    } else {
+      if (!choiceA.trim() || !choiceB.trim() || !choiceC.trim() || !choiceD.trim()) {
+        Alert.alert('Notice', 'Please provide all 4 multiple choice options');
+        return;
+      }
+      choices = [
         { text: choiceA.trim(), is_correct: correctChoiceIdx === 0 },
         { text: choiceB.trim(), is_correct: correctChoiceIdx === 1 },
         { text: choiceC.trim(), is_correct: correctChoiceIdx === 2 },
         { text: choiceD.trim(), is_correct: correctChoiceIdx === 3 },
       ];
+    }
 
+    setSavingQuestion(true);
+    try {
       const formData = new FormData();
       formData.append('question_text', newQuestionText.trim());
+      formData.append('question_type', questionType);
       formData.append('marks', questionMarks || '1');
       formData.append('choices', JSON.stringify(choices));
 
@@ -302,7 +311,7 @@ export default function AdminExamsScreen({ navigation }) {
 
       const res = await addQuestionApi(selectedExam.id, formData);
       if (res.success) {
-        Alert.alert('تم بنجاح', 'تم إضافة السؤال إلى الامتحان');
+        Alert.alert('Success', 'Question added to exam successfully');
         // Reset form
         setNewQuestionText('');
         setChoiceA('');
@@ -310,6 +319,7 @@ export default function AdminExamsScreen({ navigation }) {
         setChoiceC('');
         setChoiceD('');
         setCorrectChoiceIdx(0);
+        setTfCorrect('true');
         setDiagramImage(null);
         setShowAddQuestion(false);
 
@@ -318,7 +328,6 @@ export default function AdminExamsScreen({ navigation }) {
         if (detailsRes.success && detailsRes.exam) {
           setExamQuestions(detailsRes.exam.questions || []);
         }
-        // Increment main exams list
         setExams((prev) =>
           prev.map((e) =>
             e.id === selectedExam.id
@@ -327,10 +336,10 @@ export default function AdminExamsScreen({ navigation }) {
           )
         );
       } else {
-        Alert.alert('خطأ', res.message || 'فشل إضافة السؤال');
+        Alert.alert('Error', res.message || 'Failed to add question');
       }
     } catch (e) {
-      Alert.alert('خطأ', 'تعذر إضافة السؤال');
+      Alert.alert('Error', 'Could not add question');
     } finally {
       setSavingQuestion(false);
     }
@@ -351,15 +360,15 @@ export default function AdminExamsScreen({ navigation }) {
           onPress={() => navigation.goBack()}
           activeOpacity={0.8}
         >
-          <Ionicons name="arrow-forward" size={24} color={colors.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>إدارة الامتحانات والأسئلة</Text>
+        <Text style={styles.headerTitle}>Manage Exams</Text>
         <TouchableOpacity
           style={styles.addBtn}
           onPress={() => navigation.navigate('AdminExamBuilder')}
           activeOpacity={0.8}
         >
-          <Ionicons name="add" size={22} color={colors.textPrimary} />
+          <Ionicons name="add" size={22} color="#FFF" />
         </TouchableOpacity>
       </View>
 
@@ -368,7 +377,7 @@ export default function AdminExamsScreen({ navigation }) {
         <Ionicons name="search-outline" size={20} color={colors.textMuted} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="ابحث باسم الامتحان أو الباب..."
+          placeholder="Search exams or chapters..."
           placeholderTextColor={colors.textMuted}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -382,7 +391,7 @@ export default function AdminExamsScreen({ navigation }) {
 
       <View style={styles.infoBar}>
         <Text style={styles.infoText}>
-          إجمالي الامتحانات: {filteredExams.length} من {exams.length}
+          Total Exams: {filteredExams.length} of {exams.length}
         </Text>
       </View>
 
@@ -391,9 +400,9 @@ export default function AdminExamsScreen({ navigation }) {
       ) : filteredExams.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="document-text-outline" size={56} color={colors.textMuted} />
-          <Text style={styles.emptyTitle}>لا توجد امتحانات مضافة</Text>
+          <Text style={styles.emptyTitle}>No exams found</Text>
           <Text style={styles.emptySub}>
-            {searchQuery ? 'جرب البحث بكلمة أخرى' : 'اضغط على زر (+) في الأعلى لإنشاء امتحان جديد'}
+            {searchQuery ? 'Try a different search term' : 'Tap the (+) button at top right to build an exam'}
           </Text>
         </View>
       ) : (
@@ -421,7 +430,7 @@ export default function AdminExamsScreen({ navigation }) {
                   ]}
                 >
                   <Text style={styles.statusText}>
-                    {exam.is_published ? 'منشور للطلاب' : 'مسودة غير منشورة'}
+                    {exam.is_published ? 'Published' : 'Draft (Hidden)'}
                   </Text>
                 </View>
                 <Text style={styles.examId}>#{exam.id}</Text>
@@ -436,19 +445,19 @@ export default function AdminExamsScreen({ navigation }) {
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
                   <Ionicons name="help-circle-outline" size={14} color={colors.primaryLight} />
-                  <Text style={styles.metaText}>{exam.questions_count || 0} أسئلة</Text>
+                  <Text style={styles.metaText}>{exam.questions_count || 0} questions</Text>
                 </View>
                 <View style={styles.metaItem}>
                   <Ionicons name="time-outline" size={14} color={colors.textMuted} />
-                  <Text style={styles.metaText}>{exam.duration_minutes} دقيقة</Text>
+                  <Text style={styles.metaText}>{exam.duration_minutes} min</Text>
                 </View>
                 <View style={styles.metaItem}>
                   <Ionicons name="trophy-outline" size={14} color={colors.warning} />
-                  <Text style={styles.metaText}>{exam.total_marks} درجة</Text>
+                  <Text style={styles.metaText}>{exam.total_marks} pts</Text>
                 </View>
                 <View style={styles.metaItem}>
                   <Ionicons name="people-outline" size={14} color={colors.success} />
-                  <Text style={styles.metaText}>{exam.submissions_count || 0} طالب خاضه</Text>
+                  <Text style={styles.metaText}>{exam.submissions_count || 0} taken</Text>
                 </View>
               </View>
 
@@ -463,7 +472,7 @@ export default function AdminExamsScreen({ navigation }) {
                     trackColor={{ false: colors.surfaceBorder, true: colors.primary }}
                     thumbColor={exam.is_published ? colors.accent : '#94A3B8'}
                   />
-                  <Text style={styles.controlLabel}>نشر الامتحان</Text>
+                  <Text style={styles.controlLabel}>Publish</Text>
                 </View>
 
                 <View style={styles.btnGroup}>
@@ -474,7 +483,7 @@ export default function AdminExamsScreen({ navigation }) {
                     activeOpacity={0.7}
                   >
                     <Ionicons name="list-outline" size={16} color={colors.accent} />
-                    <Text style={styles.questionsBtnText}>الأسئلة ({exam.questions_count || 0})</Text>
+                    <Text style={styles.questionsBtnText}>Questions ({exam.questions_count || 0})</Text>
                   </TouchableOpacity>
 
                   {/* Edit Button */}
@@ -483,7 +492,7 @@ export default function AdminExamsScreen({ navigation }) {
                     onPress={() => openEditModal(exam)}
                     activeOpacity={0.7}
                   >
-                    <Ionicons name="pencil" size={16} color={colors.primaryLight} />
+                    <Ionicons name="pencil" size={15} color={colors.primaryLight} />
                   </TouchableOpacity>
 
                   {/* Delete Button */}
@@ -492,7 +501,7 @@ export default function AdminExamsScreen({ navigation }) {
                     onPress={() => handleDeleteExam(exam)}
                     activeOpacity={0.7}
                   >
-                    <Ionicons name="trash-outline" size={16} color={colors.error} />
+                    <Ionicons name="trash-outline" size={15} color={colors.danger} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -511,38 +520,38 @@ export default function AdminExamsScreen({ navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>تعديل إعدادات الامتحان</Text>
+              <Text style={styles.modalTitle}>Edit Exam Settings</Text>
               <TouchableOpacity onPress={() => setEditExamModal(false)}>
                 <Ionicons name="close" size={24} color={colors.textPrimary} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalBody}>
-              <Text style={styles.inputLabel}>عنوان الامتحان *</Text>
+              <Text style={styles.inputLabel}>Exam Title *</Text>
               <TextInput
                 style={styles.modalInput}
                 value={editTitle}
                 onChangeText={setEditTitle}
-                placeholder="عنوان الامتحان..."
+                placeholder="Enter exam title..."
                 placeholderTextColor={colors.textMuted}
-                textAlign="right"
+                textAlign="left"
               />
 
-              <Text style={styles.inputLabel}>الوصف</Text>
+              <Text style={styles.inputLabel}>Description / Instructions</Text>
               <TextInput
                 style={[styles.modalInput, styles.textArea]}
                 value={editDescription}
                 onChangeText={setEditDescription}
-                placeholder="وصف الامتحان أو تعليمات للطلاب..."
+                placeholder="Instructions for students..."
                 placeholderTextColor={colors.textMuted}
                 multiline
                 numberOfLines={2}
-                textAlign="right"
+                textAlign="left"
               />
 
               <View style={styles.inputGridRow}>
                 <View style={styles.gridField}>
-                  <Text style={styles.inputLabel}>مدة الامتحان (دقيقة)</Text>
+                  <Text style={styles.inputLabel}>Duration (min)</Text>
                   <TextInput
                     style={styles.modalInput}
                     value={editDuration}
@@ -553,7 +562,7 @@ export default function AdminExamsScreen({ navigation }) {
                 </View>
 
                 <View style={styles.gridField}>
-                  <Text style={styles.inputLabel}>إجمالي الدرجات</Text>
+                  <Text style={styles.inputLabel}>Total Marks</Text>
                   <TextInput
                     style={styles.modalInput}
                     value={editMarks}
@@ -564,7 +573,7 @@ export default function AdminExamsScreen({ navigation }) {
                 </View>
 
                 <View style={styles.gridField}>
-                  <Text style={styles.inputLabel}>نسبة النجاح (%)</Text>
+                  <Text style={styles.inputLabel}>Pass (%)</Text>
                   <TextInput
                     style={styles.modalInput}
                     value={editPassing}
@@ -584,7 +593,7 @@ export default function AdminExamsScreen({ navigation }) {
                 {savingEdit ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={styles.saveBtnText}>حفظ الإعدادات</Text>
+                  <Text style={styles.saveBtnText}>Save Settings</Text>
                 )}
               </TouchableOpacity>
             </ScrollView>
@@ -602,11 +611,11 @@ export default function AdminExamsScreen({ navigation }) {
           {/* Modal Header */}
           <View style={styles.fullModalHeader}>
             <TouchableOpacity onPress={() => setQuestionsModal(false)} style={styles.backBtn}>
-              <Ionicons name="arrow-forward" size={24} color={colors.textPrimary} />
+              <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
             </TouchableOpacity>
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.fullModalTitle}>أسئلة الامتحان</Text>
-              <Text style={styles.fullModalSubtitle}>{selectedExam?.title}</Text>
+            <View style={{ flex: 1, paddingHorizontal: 12 }}>
+              <Text style={styles.fullModalTitle}>Exam Questions</Text>
+              <Text style={styles.fullModalSubtitle} numberOfLines={1}>{selectedExam?.title}</Text>
             </View>
             <TouchableOpacity
               style={styles.addNewQuestionBtn}
@@ -615,11 +624,11 @@ export default function AdminExamsScreen({ navigation }) {
             >
               <Ionicons
                 name={showAddQuestion ? 'close' : 'add'}
-                size={20}
-                color={colors.textPrimary}
+                size={18}
+                color="#FFF"
               />
               <Text style={styles.addNewQuestionText}>
-                {showAddQuestion ? 'إلغاء' : 'سؤال جديد'}
+                {showAddQuestion ? 'Cancel' : 'Add Question'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -628,24 +637,56 @@ export default function AdminExamsScreen({ navigation }) {
             {/* Add Question Inline Card */}
             {showAddQuestion && (
               <View style={styles.addQuestionCard}>
-                <Text style={styles.addQuestionCardTitle}>إضافة سؤال جديد للامتحان</Text>
+                <Text style={styles.addQuestionCardTitle}>New Question</Text>
 
-                <Text style={styles.inputLabel}>نص السؤال *</Text>
+                {/* Question Type Switcher */}
+                <Text style={styles.inputLabel}>Question Type</Text>
+                <View style={styles.typeSwitcherRow}>
+                  <TouchableOpacity
+                    style={[styles.typeBtn, questionType === 'mcq' && styles.typeBtnActive]}
+                    onPress={() => setQuestionType('mcq')}
+                  >
+                    <Ionicons
+                      name="list-circle-outline"
+                      size={18}
+                      color={questionType === 'mcq' ? '#FFF' : colors.textSecondary}
+                    />
+                    <Text style={[styles.typeBtnText, questionType === 'mcq' && styles.typeBtnTextActive]}>
+                      Multiple Choice (MCQ)
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.typeBtn, questionType === 'true_false' && styles.typeBtnActive]}
+                    onPress={() => setQuestionType('true_false')}
+                  >
+                    <Ionicons
+                      name="checkbox-outline"
+                      size={18}
+                      color={questionType === 'true_false' ? '#FFF' : colors.textSecondary}
+                    />
+                    <Text style={[styles.typeBtnText, questionType === 'true_false' && styles.typeBtnTextActive]}>
+                      True / False
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.inputLabel}>Question Text *</Text>
                 <TextInput
                   style={[styles.modalInput, styles.textArea]}
                   value={newQuestionText}
                   onChangeText={setNewQuestionText}
-                  placeholder="اكتب صيغة السؤال هنا..."
+                  placeholder="Enter the question text here..."
                   placeholderTextColor={colors.textMuted}
                   multiline
-                  textAlign="right"
+                  textAlign="left"
                 />
 
                 {/* Diagram Image Picker */}
                 <TouchableOpacity style={styles.diagramPickBtn} onPress={pickDiagram} activeOpacity={0.8}>
                   <Ionicons name="image-outline" size={20} color={colors.primaryLight} />
                   <Text style={styles.diagramPickText}>
-                    {diagramImage ? 'تم اختيار رسمة توضيحية (اضغط للتغيير)' : 'إرفاق دائرة كهربية أو رسمة بيانية'}
+                    {diagramImage ? 'Diagram selected (tap to change)' : 'Attach diagram or circuit image'}
                   </Text>
                 </TouchableOpacity>
 
@@ -653,42 +694,101 @@ export default function AdminExamsScreen({ navigation }) {
                   <Image source={{ uri: diagramImage.uri }} style={styles.diagramPreview} resizeMode="contain" />
                 )}
 
-                <Text style={[styles.inputLabel, { marginTop: 14 }]}>
-                  الخيارات الأربعة (حدد الدائرة بجانب الإجابة الصحيحة):
-                </Text>
+                {/* If True / False */}
+                {questionType === 'true_false' ? (
+                  <View style={styles.tfContainer}>
+                    <Text style={[styles.inputLabel, { marginTop: 14 }]}>
+                      Select the correct answer:
+                    </Text>
+                    <View style={styles.tfButtonGroup}>
+                      <TouchableOpacity
+                        style={[
+                          styles.tfChoiceBtn,
+                          tfCorrect === 'true' && styles.tfChoiceBtnTrueActive,
+                        ]}
+                        onPress={() => setTfCorrect('true')}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons
+                          name={tfCorrect === 'true' ? 'checkmark-circle' : 'ellipse-outline'}
+                          size={22}
+                          color={tfCorrect === 'true' ? colors.success : colors.textMuted}
+                        />
+                        <Text
+                          style={[
+                            styles.tfChoiceBtnText,
+                            tfCorrect === 'true' && { color: colors.success, fontWeight: 'bold' },
+                          ]}
+                        >
+                          True (Correct)
+                        </Text>
+                      </TouchableOpacity>
 
-                {[
-                  { label: 'أ', val: choiceA, setVal: setChoiceA, idx: 0 },
-                  { label: 'ب', val: choiceB, setVal: setChoiceB, idx: 1 },
-                  { label: 'ج', val: choiceC, setVal: setChoiceC, idx: 2 },
-                  { label: 'د', val: choiceD, setVal: setChoiceD, idx: 3 },
-                ].map((item) => (
-                  <View key={item.label} style={styles.choiceInputRow}>
-                    <TouchableOpacity
-                      style={[
-                        styles.correctRadio,
-                        correctChoiceIdx === item.idx && styles.correctRadioActive,
-                      ]}
-                      onPress={() => setCorrectChoiceIdx(item.idx)}
-                    >
-                      {correctChoiceIdx === item.idx && (
-                        <Ionicons name="checkmark" size={14} color="#fff" />
-                      )}
-                    </TouchableOpacity>
-                    <TextInput
-                      style={styles.choiceInput}
-                      placeholder={`الخيار (${item.label})`}
-                      placeholderTextColor={colors.textMuted}
-                      value={item.val}
-                      onChangeText={item.setVal}
-                      textAlign="right"
-                    />
-                    <Text style={styles.choiceLabel}>({item.label})</Text>
+                      <TouchableOpacity
+                        style={[
+                          styles.tfChoiceBtn,
+                          tfCorrect === 'false' && styles.tfChoiceBtnFalseActive,
+                        ]}
+                        onPress={() => setTfCorrect('false')}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons
+                          name={tfCorrect === 'false' ? 'close-circle' : 'ellipse-outline'}
+                          size={22}
+                          color={tfCorrect === 'false' ? colors.danger : colors.textMuted}
+                        />
+                        <Text
+                          style={[
+                            styles.tfChoiceBtnText,
+                            tfCorrect === 'false' && { color: colors.danger, fontWeight: 'bold' },
+                          ]}
+                        >
+                          False (Incorrect)
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                ))}
+                ) : (
+                  /* If MCQ */
+                  <View>
+                    <Text style={[styles.inputLabel, { marginTop: 14 }]}>
+                      Multiple Choices (Select radio button for the correct choice):
+                    </Text>
+
+                    {[
+                      { label: 'A', val: choiceA, setVal: setChoiceA, idx: 0 },
+                      { label: 'B', val: choiceB, setVal: setChoiceB, idx: 1 },
+                      { label: 'C', val: choiceC, setVal: setChoiceC, idx: 2 },
+                      { label: 'D', val: choiceD, setVal: setChoiceD, idx: 3 },
+                    ].map((item) => (
+                      <View key={item.label} style={styles.choiceInputRow}>
+                        <TouchableOpacity
+                          style={[
+                            styles.correctRadio,
+                            correctChoiceIdx === item.idx && styles.correctRadioActive,
+                          ]}
+                          onPress={() => setCorrectChoiceIdx(item.idx)}
+                        >
+                          {correctChoiceIdx === item.idx && (
+                            <Ionicons name="checkmark" size={14} color="#fff" />
+                          )}
+                        </TouchableOpacity>
+                        <Text style={styles.choiceLabel}>{item.label})</Text>
+                        <TextInput
+                          style={styles.choiceInput}
+                          placeholder={`Option ${item.label}`}
+                          placeholderTextColor={colors.textMuted}
+                          value={item.val}
+                          onChangeText={item.setVal}
+                          textAlign="left"
+                        />
+                      </View>
+                    ))}
+                  </View>
+                )}
 
                 <View style={styles.marksRow}>
-                  <Text style={styles.inputLabel}>درجة هذا السؤال:</Text>
+                  <Text style={styles.inputLabel}>Points for this question:</Text>
                   <TextInput
                     style={styles.marksInput}
                     value={questionMarks}
@@ -707,7 +807,7 @@ export default function AdminExamsScreen({ navigation }) {
                   {savingQuestion ? (
                     <ActivityIndicator color="#fff" />
                   ) : (
-                    <Text style={styles.submitQuestionBtnText}>حفظ وإضافة السؤال للامتحان</Text>
+                    <Text style={styles.submitQuestionBtnText}>Save Question to Exam</Text>
                   )}
                 </TouchableOpacity>
               </View>
@@ -719,24 +819,32 @@ export default function AdminExamsScreen({ navigation }) {
             ) : examQuestions.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <Ionicons name="help-circle-outline" size={48} color={colors.textMuted} />
-                <Text style={styles.emptyTitle}>لا توجد أسئلة في هذا الامتحان بعد</Text>
-                <Text style={styles.emptySub}>اضغط على "سؤال جديد" بالأعلى لإضافة أول سؤال</Text>
+                <Text style={styles.emptyTitle}>No questions in this exam yet</Text>
+                <Text style={styles.emptySub}>Tap "Add Question" above to add the first question</Text>
               </View>
             ) : (
               examQuestions.map((q, qIndex) => (
                 <View key={q.id} style={styles.questionCard}>
                   <View style={styles.questionCardHeader}>
+                    <View style={styles.questionIndexBadge}>
+                      <Text style={styles.questionIndexText}>
+                        Q{qIndex + 1} ({q.marks || 1} pt{q.marks > 1 ? 's' : ''})
+                      </Text>
+                      {q.question_type === 'true_false' && (
+                        <View style={styles.tfBadgeSmall}>
+                          <Text style={styles.tfBadgeSmallText}>T / F</Text>
+                        </View>
+                      )}
+                    </View>
+
                     <TouchableOpacity
                       style={styles.deleteQuestionBtn}
                       onPress={() => handleDeleteQuestion(q)}
                       activeOpacity={0.7}
                     >
-                      <Ionicons name="trash-outline" size={16} color={colors.error} />
-                      <Text style={styles.deleteQuestionText}>حذف</Text>
+                      <Ionicons name="trash-outline" size={16} color={colors.danger} />
+                      <Text style={styles.deleteQuestionText}>Delete</Text>
                     </TouchableOpacity>
-                    <View style={styles.questionIndexBadge}>
-                      <Text style={styles.questionIndexText}>سؤال {qIndex + 1} ({q.marks || 1} درجات)</Text>
-                    </View>
                   </View>
 
                   <Text style={styles.questionCardText}>{q.question_text}</Text>
@@ -795,7 +903,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
@@ -814,12 +922,12 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   addBtn: {
-    backgroundColor: colors.warning,
+    backgroundColor: colors.primary,
     padding: 6,
     borderRadius: 8,
   },
   searchBarWrap: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
     marginHorizontal: 16,
@@ -831,13 +939,13 @@ const styles = StyleSheet.create({
     height: 46,
   },
   searchIcon: {
-    marginLeft: 8,
+    marginRight: 8,
   },
   searchInput: {
     flex: 1,
     color: colors.textPrimary,
     fontSize: 14,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   infoBar: {
     paddingHorizontal: 20,
@@ -847,7 +955,7 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 12,
     color: colors.textMuted,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   scrollList: {
     padding: 16,
@@ -879,7 +987,7 @@ const styles = StyleSheet.create({
     borderColor: colors.surfaceBorder,
   },
   cardHeaderRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 8,
@@ -909,25 +1017,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginTop: 4,
   },
   examDescription: {
     fontSize: 12,
     color: colors.textSecondary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginTop: 4,
     lineHeight: 18,
   },
   metaRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
     gap: 12,
     marginTop: 10,
   },
   metaItem: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
@@ -941,12 +1049,12 @@ const styles = StyleSheet.create({
     marginVertical: 12,
   },
   controlsRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   toggleControl: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
@@ -956,12 +1064,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   btnGroup: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
   questionsBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(217, 119, 6, 0.12)',
     paddingHorizontal: 10,
@@ -1005,7 +1113,7 @@ const styles = StyleSheet.create({
     maxHeight: '85%',
   },
   modalHeader: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingBottom: 14,
@@ -1024,7 +1132,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: colors.textSecondary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 6,
     marginTop: 8,
   },
@@ -1042,7 +1150,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   inputGridRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     gap: 8,
     marginTop: 8,
   },
@@ -1069,7 +1177,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   fullModalHeader: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
@@ -1089,7 +1197,7 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   addNewQuestionBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primary,
     paddingHorizontal: 10,
@@ -1118,11 +1226,74 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
     color: colors.primaryLight,
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 10,
   },
+  typeSwitcherRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 10,
+  },
+  typeBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+  },
+  typeBtnActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primaryLight,
+  },
+  typeBtnText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  typeBtnTextActive: {
+    color: '#FFF',
+    fontWeight: 'bold',
+  },
+  tfContainer: {
+    marginTop: 6,
+  },
+  tfButtonGroup: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
+  },
+  tfChoiceBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: colors.background,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: colors.surfaceBorder,
+  },
+  tfChoiceBtnTrueActive: {
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    borderColor: colors.success,
+  },
+  tfChoiceBtnFalseActive: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderColor: colors.danger,
+  },
+  tfChoiceBtnText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
   diagramPickBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(56, 189, 248, 0.1)',
     borderRadius: 10,
@@ -1145,7 +1316,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
   choiceInputRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginTop: 8,
@@ -1164,8 +1335,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    width: 24,
-    textAlign: 'center',
+    width: 20,
   },
   correctRadio: {
     width: 24,
@@ -1181,7 +1351,7 @@ const styles = StyleSheet.create({
     borderColor: colors.success,
   },
   marksRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     marginTop: 14,
@@ -1216,12 +1386,15 @@ const styles = StyleSheet.create({
     borderColor: colors.surfaceBorder,
   },
   questionCardHeader: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 8,
   },
   questionIndexBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: 'rgba(56, 189, 248, 0.1)',
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -1232,21 +1405,32 @@ const styles = StyleSheet.create({
     color: colors.primaryLight,
     fontWeight: 'bold',
   },
+  tfBadgeSmall: {
+    backgroundColor: 'rgba(217, 119, 6, 0.2)',
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  tfBadgeSmallText: {
+    color: colors.gold,
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
   deleteQuestionBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     padding: 4,
   },
   deleteQuestionText: {
     fontSize: 11,
-    color: colors.error,
+    color: colors.danger,
   },
   questionCardText: {
     fontSize: 14,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'left',
     lineHeight: 20,
   },
   serverDiagramImage: {
@@ -1261,7 +1445,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   choiceItem: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.background,
     paddingHorizontal: 12,
@@ -1279,7 +1463,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     color: colors.textSecondary,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   correctChoiceItemText: {
     color: colors.success,

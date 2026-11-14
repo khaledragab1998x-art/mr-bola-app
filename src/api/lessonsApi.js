@@ -30,3 +30,10 @@ export async function deleteLessonCommentApi(lessonId, commentId) {
     method: 'DELETE',
   });
 }
+
+export async function redeemLessonCodeApi(code, lessonId = null) {
+  return apiRequest('/api/lessons/redeem-code', {
+    method: 'POST',
+    body: JSON.stringify({ code, lesson_id: lessonId }),
+  });
+}

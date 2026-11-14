@@ -84,9 +84,9 @@ export default function HomeScreen({ navigation }) {
         {/* Top Bar / Profile Greeting */}
         <View style={styles.topBar}>
           <View style={styles.userWrap}>
-            <Text style={styles.greetingText}>أهلاً بك يا بطل الفيزياء 👋</Text>
-            <Text style={styles.userNameText}>{user?.name || 'طالب مستر بولا'}</Text>
-            <Text style={styles.academicYearText}>{user?.academic_year || 'الصف الثالث الثانوي'}</Text>
+            <Text style={styles.greetingText}>Welcome, Physics Champion 👋</Text>
+            <Text style={styles.userNameText}>{user?.name || 'Student'}</Text>
+            <Text style={styles.academicYearText}>{user?.academic_year || 'Mr.Poula Malak - Physics'}</Text>
           </View>
 
           <TouchableOpacity
@@ -128,11 +128,11 @@ export default function HomeScreen({ navigation }) {
                 <Ionicons name="speedometer" size={24} color="#FFF" />
               </View>
               <View style={styles.adminBannerText}>
-                <Text style={styles.adminBannerTitle}>أنت مسجل كـ "مستر بولا (أدمن)"</Text>
-                <Text style={styles.adminBannerSubtitle}>اضغط هنا لفتح لوحة التحكم، رفع الفيديوهات، وإدارة الامتحانات</Text>
+                <Text style={styles.adminBannerTitle}>Signed in as Admin</Text>
+                <Text style={styles.adminBannerSubtitle}>Tap here to open Teacher Control Panel, upload videos & manage exams</Text>
               </View>
             </View>
-            <Ionicons name="arrow-back" size={20} color="#FFF" style={{ marginRight: 8 }} />
+            <Ionicons name="arrow-forward" size={20} color="#FFF" style={{ marginLeft: 8 }} />
           </TouchableOpacity>
         )}
 
@@ -140,9 +140,9 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.quoteCard}>
           <Ionicons name="bulb-outline" size={24} color={colors.accent} />
           <Text style={styles.quoteText}>
-            "الفيزياء ليست مجرد قوانين ومعادلات، بل فهم عميق لحركة الكون من حولك."
+            "Physics is not merely memorizing formulas—it is understanding how our universe moves and operates."
           </Text>
-          <Text style={styles.teacherSign}>— مستر بولا</Text>
+          <Text style={styles.teacherSign}>— Mr.Poula Malak</Text>
         </View>
 
         {/* Quick Actions Grid */}
@@ -155,8 +155,8 @@ export default function HomeScreen({ navigation }) {
             <View style={[styles.gridIconBox, { backgroundColor: 'rgba(2, 132, 199, 0.2)' }]}>
               <Ionicons name="play-circle" size={28} color={colors.primaryLight} />
             </View>
-            <Text style={styles.gridTitle}>دروس</Text>
-            <Text style={styles.gridSubtitle}>فيديوهات ومحاضرات</Text>
+            <Text style={styles.gridTitle}>Lessons</Text>
+            <Text style={styles.gridSubtitle}>Lectures & Notes</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -167,17 +167,17 @@ export default function HomeScreen({ navigation }) {
             <View style={[styles.gridIconBox, { backgroundColor: 'rgba(245, 158, 11, 0.2)' }]}>
               <Ionicons name="document-text" size={28} color={colors.warning} />
             </View>
-            <Text style={styles.gridTitle}>الامتحانات</Text>
-            <Text style={styles.gridSubtitle}>تقييمات دورية بمؤقت</Text>
+            <Text style={styles.gridTitle}>Exams</Text>
+            <Text style={styles.gridSubtitle}>Timed Tests & Results</Text>
           </TouchableOpacity>
         </View>
 
         {/* Recent Lessons Section */}
         <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Latest Lessons</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Lessons')}>
-            <Text style={styles.seeAllText}>عرض الكل</Text>
+            <Text style={styles.seeAllText}>View All</Text>
           </TouchableOpacity>
-          <Text style={styles.sectionTitle}>أحدث الحصص المرفوعة</Text>
         </View>
 
         {loading ? (
@@ -185,7 +185,7 @@ export default function HomeScreen({ navigation }) {
         ) : recentLessons.length === 0 ? (
           <View style={styles.emptyCard}>
             <Ionicons name="film-outline" size={32} color={colors.textMuted} />
-            <Text style={styles.emptyText}>لم يتم رفع حصص بعد. سيقوم مستر بولا بإضافتها قريباً.</Text>
+            <Text style={styles.emptyText}>No lessons uploaded yet. Mr.Poula will publish new lessons soon.</Text>
           </View>
         ) : (
           recentLessons.map((lesson) => (
@@ -201,20 +201,20 @@ export default function HomeScreen({ navigation }) {
                 </View>
                 <View style={styles.lessonInfo}>
                   <Text style={styles.lessonTitle}>{lesson.title}</Text>
-                  <Text style={styles.lessonChapter}>{lesson.chapterTitle || 'الفصل الأول'}</Text>
+                  <Text style={styles.lessonChapter}>{lesson.chapterTitle || 'Chapter 1'}</Text>
                 </View>
               </View>
 
               <View style={styles.lessonBadgeRow}>
                 {lesson.is_free_preview ? (
                   <View style={[styles.badge, { backgroundColor: 'rgba(16, 185, 129, 0.15)' }]}>
-                    <Text style={[styles.badgeText, { color: colors.success }]}>مجانية</Text>
+                    <Text style={[styles.badgeText, { color: colors.success }]}>Free Preview</Text>
                   </View>
                 ) : null}
                 <View style={styles.durationPill}>
                   <Ionicons name="time-outline" size={13} color={colors.textSecondary} />
                   <Text style={styles.durationText}>
-                    {lesson.duration_seconds ? `${Math.round(lesson.duration_seconds / 60)} دقيقة` : 'جاهزة'}
+                    {lesson.duration_seconds ? `${Math.round(lesson.duration_seconds / 60)} min` : 'Ready'}
                   </Text>
                 </View>
               </View>
@@ -222,12 +222,12 @@ export default function HomeScreen({ navigation }) {
           ))
         )}
 
-        {/* Featured Courses Section (NEW) */}
+        {/* Featured Courses Section */}
         <View style={[styles.sectionHeader, { marginTop: 24 }]}>
+          <Text style={styles.sectionTitle}>Comprehensive Courses 🎓</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Courses')}>
-            <Text style={styles.seeAllText}>عرض الكل</Text>
+            <Text style={styles.seeAllText}>View All</Text>
           </TouchableOpacity>
-          <Text style={styles.sectionTitle}>الكورسات والدورات الشاملة 🎓</Text>
         </View>
 
         {featuredCourses.length === 0 ? (
@@ -240,10 +240,10 @@ export default function HomeScreen({ navigation }) {
               <Ionicons name="school-outline" size={28} color={colors.primaryLight} />
             </View>
             <View style={styles.courseBannerText}>
-              <Text style={styles.courseBannerTitle}>استكشف كورسات ومراجعات الفيزياء</Text>
-              <Text style={styles.courseBannerSub}>شروحات مركزة وأفكار متقدمة للثانوية العامة</Text>
+              <Text style={styles.courseBannerTitle}>Explore Physics Courses & Revisions</Text>
+              <Text style={styles.courseBannerSub}>Master advanced problem-solving techniques</Text>
             </View>
-            <Ionicons name="chevron-back" size={18} color={colors.textSecondary} />
+            <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
           </TouchableOpacity>
         ) : (
           featuredCourses.map((c) => (
@@ -253,14 +253,6 @@ export default function HomeScreen({ navigation }) {
               onPress={() => navigation.navigate('CourseDetails', { courseId: c.id, title: c.title })}
               activeOpacity={0.85}
             >
-              <View style={styles.homeCourseInfo}>
-                <Text style={styles.homeCourseTitle} numberOfLines={1}>{c.title}</Text>
-                <Text style={styles.homeCourseSub} numberOfLines={1}>{c.description || 'كورس فيزياء متخصص'}</Text>
-                <View style={styles.homeCourseMeta}>
-                  <Text style={styles.homeCourseCount}>{c.videos_count || 0} محاضرات</Text>
-                  <Text style={styles.homeCoursePrice}>{Number(c.price) > 0 ? `${c.price} ج.م` : 'مجاني'}</Text>
-                </View>
-              </View>
               {c.thumbnail_url ? (
                 <Image
                   source={{
@@ -276,22 +268,30 @@ export default function HomeScreen({ navigation }) {
                   <Ionicons name="school" size={24} color={colors.primaryLight} />
                 </View>
               )}
+              <View style={styles.homeCourseInfo}>
+                <Text style={styles.homeCourseTitle} numberOfLines={1}>{c.title}</Text>
+                <Text style={styles.homeCourseSub} numberOfLines={1}>{c.description || 'Specialized Physics Course'}</Text>
+                <View style={styles.homeCourseMeta}>
+                  <Text style={styles.homeCourseCount}>{c.videos_count || 0} Lectures</Text>
+                  <Text style={styles.homeCoursePrice}>{Number(c.price) > 0 ? `${c.price} EGP` : 'Free'}</Text>
+                </View>
+              </View>
             </TouchableOpacity>
           ))
         )}
 
         {/* Active Exams Section */}
         <View style={[styles.sectionHeader, { marginTop: 24 }]}>
+          <Text style={styles.sectionTitle}>Exams & Assessments</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Exams')}>
-            <Text style={styles.seeAllText}>عرض الكل</Text>
+            <Text style={styles.seeAllText}>View All</Text>
           </TouchableOpacity>
-          <Text style={styles.sectionTitle}>الامتحانات والتقييمات</Text>
         </View>
 
         {activeExams.length === 0 ? (
           <View style={styles.emptyCard}>
             <Ionicons name="clipboard-outline" size={32} color={colors.textMuted} />
-            <Text style={styles.emptyText}>لا توجد امتحانات نشطة حالياً</Text>
+            <Text style={styles.emptyText}>No exams currently available.</Text>
           </View>
         ) : (
           activeExams.map((exam) => (
@@ -302,23 +302,23 @@ export default function HomeScreen({ navigation }) {
               activeOpacity={0.8}
             >
               <View style={styles.examCardTop}>
-                <View style={styles.examBadge}>
-                  <Text style={styles.examBadgeText}>{exam.duration_minutes} دقيقة</Text>
-                </View>
                 <Text style={styles.examTitle}>{exam.title}</Text>
+                <View style={styles.examBadge}>
+                  <Text style={styles.examBadgeText}>{exam.duration_minutes} min</Text>
+                </View>
               </View>
 
               <View style={styles.examCardBottom}>
                 <Text style={styles.examScoreStatus}>
                   {exam.submission_status === 'completed'
-                    ? `تم الحل: ${exam.student_score} / ${exam.total_marks}`
-                    : 'لم يتم الحل بعد'}
+                    ? `Solved: ${exam.student_score} / ${exam.total_marks}`
+                    : 'Not solved yet'}
                 </Text>
                 <View style={styles.examActionBtn}>
                   <Text style={styles.examActionText}>
-                    {exam.submission_status === 'completed' ? 'عرض النتيجة' : 'بدء الامتحان'}
+                    {exam.submission_status === 'completed' ? 'View Result' : 'Start Exam'}
                   </Text>
-                  <Ionicons name="chevron-back" size={14} color="#FFF" />
+                  <Ionicons name="chevron-forward" size={14} color="#FFF" />
                 </View>
               </View>
             </TouchableOpacity>
@@ -350,13 +350,13 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   topBar: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 16,
   },
   userWrap: {
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
   },
   greetingText: {
     fontSize: 12,
@@ -397,14 +397,14 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
     marginVertical: 12,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#38BDF8',
   },
   adminBannerRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     flex: 1,
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
   },
   adminBannerText: {
     flex: 1,
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
   },
   adminBannerTitle: {
     color: '#FFF',
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
     color: '#E0F2FE',
     fontSize: 11,
     marginTop: 2,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   quoteCard: {
     backgroundColor: colors.surface,
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   gridSection: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     gap: 12,
     marginVertical: 12,
   },
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 16,
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
     borderWidth: 1,
     borderColor: colors.surfaceBorder,
   },
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
     borderColor: colors.surfaceBorder,
   },
   lessonMeta: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
@@ -527,13 +527,13 @@ const styles = StyleSheet.create({
   },
   lessonInfo: {
     flex: 1,
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
   },
   lessonTitle: {
     fontSize: 14,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   lessonChapter: {
     fontSize: 11,
@@ -541,7 +541,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   lessonBadgeRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 10,
@@ -559,7 +559,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   durationPill: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
@@ -576,7 +576,7 @@ const styles = StyleSheet.create({
     borderColor: colors.surfaceBorder,
   },
   examCardTop: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.textPrimary,
     flex: 1,
-    textAlign: 'right',
+    textAlign: 'left',
     marginRight: 10,
   },
   examBadge: {
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   examCardBottom: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 14,
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   examActionBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primary,
     paddingHorizontal: 12,
@@ -644,7 +644,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   courseBannerCard: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
     padding: 16,
@@ -664,22 +664,22 @@ const styles = StyleSheet.create({
   },
   courseBannerText: {
     flex: 1,
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
   },
   courseBannerTitle: {
     fontSize: 14,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   courseBannerSub: {
     fontSize: 11,
     color: colors.textSecondary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginTop: 3,
   },
   homeCourseCard: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: 14,
@@ -704,22 +704,22 @@ const styles = StyleSheet.create({
   },
   homeCourseInfo: {
     flex: 1,
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
   },
   homeCourseTitle: {
     fontSize: 14,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   homeCourseSub: {
     fontSize: 11,
     color: colors.textSecondary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginTop: 2,
   },
   homeCourseMeta: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     marginTop: 6,

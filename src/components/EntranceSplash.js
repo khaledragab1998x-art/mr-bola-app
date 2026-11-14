@@ -17,7 +17,7 @@ const { width } = Dimensions.get('window');
  * Enhanced Branded Entrance Splash Component
  * Provides a cinematic, royal physics loading experience using the typography logo.
  */
-export default function EntranceSplash({ message = 'جاري تحضير المنصة التعليمية...' }) {
+export default function EntranceSplash({ message = 'Preparing Learning Platform...' }) {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const glowAnim = useRef(new Animated.Value(0.4)).current;
   const textFadeAnim = useRef(new Animated.Value(0)).current;
@@ -98,11 +98,11 @@ export default function EntranceSplash({ message = 'جاري تحضير المن
       <Animated.View style={[styles.textContainer, { opacity: textFadeAnim }]}>
         <View style={styles.badgeRow}>
           <Ionicons name="sparkles" size={14} color={colors.gold} />
-          <Text style={styles.badgeText}>المنصة الرسمية الأولى للفيزياء</Text>
+          <Text style={styles.badgeText}>Mr.Poula Malak - Physics</Text>
           <Ionicons name="sparkles" size={14} color={colors.gold} />
         </View>
 
-        <Text style={styles.tagline}>الفيزياء بفهم وإتقان • مع مستر بولا</Text>
+        <Text style={styles.tagline}>Master Physics with Deep Understanding</Text>
 
         {/* Loading Spinner & Status */}
         <View style={styles.loadingWrap}>
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   badgeRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     backgroundColor: 'rgba(245, 158, 11, 0.12)',
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   loadingWrap: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },

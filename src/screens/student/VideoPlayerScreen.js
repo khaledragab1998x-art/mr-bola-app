@@ -12,6 +12,7 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import * as ScreenCapture from 'expo-screen-capture';
@@ -23,6 +24,7 @@ import {
   getLessonCommentsApi,
   addLessonCommentApi,
   deleteLessonCommentApi,
+  redeemLessonCodeApi,
 } from '../../api/lessonsApi';
 import { getCourseVideoStreamingApi } from '../../api/coursesApi';
 import { getServerUrl } from '../../api/client';
@@ -40,6 +42,11 @@ export default function VideoPlayerScreen({ route, navigation }) {
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [serverUrl, setServerUrl] = useState('');
+
+  // Lock state
+  const [isLocked, setIsLocked] = useState(false);
+  const [unlockCode, setUnlockCode] = useState('');
+  const [unlocking, setUnlocking] = useState(false);
 
   // Comments State
   const [comments, setComments] = useState([]);
@@ -111,41 +118,70 @@ export default function VideoPlayerScreen({ route, navigation }) {
   }, []);
 
   // 2. Fetch Lesson or Course Video Details and HLS Streaming URL
-  useEffect(() => {
-    async function loadVideo() {
-      setLoading(true);
-      try {
-        let res;
-        if (courseId && videoId) {
-          res = await getCourseVideoStreamingApi(courseId, videoId);
-        } else if (lessonId) {
-          res = await getLessonDetailsApi(lessonId);
-        }
-
-        if (res && res.success && res.lesson) {
-          setLessonData(res.lesson);
-
-          const base = await getServerUrl();
-          if (res.lesson.video_url) {
-            const fullUrl = res.lesson.video_url.startsWith('http')
-              ? res.lesson.video_url
-              : `${base}${res.lesson.video_url}`;
-            setStreamUrl(fullUrl);
-          }
-        }
-      } catch (err) {
-        Alert.alert(
-          'تنبيه',
-          err.message || 'تعذر تشغيل هذا الفيديو. قد يتطلب تأكيد البريد الإلكتروني.',
-          [{ text: 'حسناً', onPress: () => navigation.goBack() }]
-        );
-      } finally {
-        setLoading(false);
+  async function loadVideo() {
+    setLoading(true);
+    setIsLocked(false);
+    try {
+      let res;
+      if (courseId && videoId) {
+        res = await getCourseVideoStreamingApi(courseId, videoId);
+      } else if (lessonId) {
+        res = await getLessonDetailsApi(lessonId);
       }
-    }
 
+      if (res && res.success && res.lesson) {
+        setLessonData(res.lesson);
+
+        const base = await getServerUrl();
+        if (res.lesson.video_url) {
+          const fullUrl = res.lesson.video_url.startsWith('http')
+            ? res.lesson.video_url
+            : `${base}${res.lesson.video_url}`;
+          setStreamUrl(fullUrl);
+        }
+      }
+    } catch (err) {
+      if (err.message && (err.message.includes('locked') || err.message.includes('code') || err.message.includes('رمز'))) {
+        setIsLocked(true);
+      } else {
+        Alert.alert(
+          'Notice',
+          err.message || 'Unable to play this video. It may require email verification or code unlock.',
+          [{ text: 'OK', onPress: () => navigation.goBack() }]
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
     loadVideo();
   }, [lessonId, courseId, videoId]);
+
+  async function handleRedeemUnlockCode() {
+    if (!unlockCode.trim()) {
+      Alert.alert('Alert', 'Please enter your unlock code');
+      return;
+    }
+
+    setUnlocking(true);
+    try {
+      const res = await redeemLessonCodeApi(unlockCode.trim(), lessonId);
+      if (res.success) {
+        Alert.alert('Lesson Unlocked! 🎉', res.message || 'Lesson unlocked successfully!');
+        setIsLocked(false);
+        setUnlockCode('');
+        await loadVideo();
+      } else {
+        throw new Error(res.message || 'Invalid unlock code');
+      }
+    } catch (e) {
+      Alert.alert('Unlock Failed', e.message || 'Invalid or expired code. Please verify with Mr.Poula.');
+    } finally {
+      setUnlocking(false);
+    }
+  }
 
   // Load comments & server URL
   useEffect(() => {
@@ -263,19 +299,49 @@ export default function VideoPlayerScreen({ route, navigation }) {
       {/* Top Header */}
       <View style={styles.topHeader}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-forward" size={24} color={colors.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          {lessonData?.title || title || 'مشغل المحاضرات'}
+          {lessonData?.title || title || 'Lecture Player'}
         </Text>
       </View>
 
-      {/* Video Container with Anti-Piracy Watermark Overlay */}
+      {/* Video Container with Anti-Piracy Watermark Overlay or Locked State */}
       <View style={styles.playerContainer}>
         {loading ? (
           <View style={styles.playerLoading}>
             <ActivityIndicator size="large" color={colors.primaryLight} />
-            <Text style={styles.loadingText}>جاري تجهيز البث الآمن (HLS)...</Text>
+            <Text style={styles.loadingText}>Preparing Secure HLS Stream...</Text>
+          </View>
+        ) : isLocked ? (
+          <View style={styles.lockedContainer}>
+            <Ionicons name="lock-closed" size={44} color={colors.gold} />
+            <Text style={styles.lockedTitle}>Premium Lesson Locked</Text>
+            <Text style={styles.lockedSubtitle}>
+              Please enter your activation code provided by Mr.Poula Malak:
+            </Text>
+            <TextInput
+              style={styles.lockCodeInput}
+              placeholder="e.g. MP-8F2A-9K7C"
+              placeholderTextColor={colors.textMuted}
+              value={unlockCode}
+              onChangeText={setUnlockCode}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              textAlign="center"
+            />
+            <TouchableOpacity
+              style={[styles.unlockBtn, unlocking && styles.unlockBtnDisabled]}
+              onPress={handleRedeemUnlockCode}
+              disabled={unlocking}
+              activeOpacity={0.8}
+            >
+              {unlocking ? (
+                <ActivityIndicator color="#FFF" size="small" />
+              ) : (
+                <Text style={styles.unlockBtnText}>Unlock Lecture Now</Text>
+              )}
+            </TouchableOpacity>
           </View>
         ) : streamUrl ? (
           <>
@@ -297,38 +363,40 @@ export default function VideoPlayerScreen({ route, navigation }) {
         ) : (
           <View style={styles.noVideoBox}>
             <Ionicons name="alert-circle-outline" size={44} color={colors.warning} />
-            <Text style={styles.noVideoText}>لم يتم رفع فيديو لهذه الحصة بعد أو لا يزال قيد المعالجة.</Text>
+            <Text style={styles.noVideoText}>No video uploaded for this lecture yet or still processing.</Text>
           </View>
         )}
       </View>
 
       {/* Quick Player Bar */}
-      <View style={styles.controlsBar}>
-        <TouchableOpacity style={styles.speedBtn} onPress={cyclePlaybackSpeed}>
-          <Text style={styles.speedBtnText}>{playbackSpeed}x</Text>
-        </TouchableOpacity>
-
-        <View style={styles.centerControls}>
-          <TouchableOpacity style={styles.seekBtn} onPress={() => seekRelative(-10)}>
-            <Ionicons name="play-back" size={20} color={colors.textPrimary} />
-            <Text style={styles.seekText}>10s</Text>
+      {!isLocked && (
+        <View style={styles.controlsBar}>
+          <TouchableOpacity style={styles.speedBtn} onPress={cyclePlaybackSpeed}>
+            <Text style={styles.speedBtnText}>{playbackSpeed}x</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.playBtn} onPress={togglePlayPause}>
-            <Ionicons name={isPlaying ? 'pause' : 'play'} size={24} color="#FFF" />
-          </TouchableOpacity>
+          <View style={styles.centerControls}>
+            <TouchableOpacity style={styles.seekBtn} onPress={() => seekRelative(-10)}>
+              <Ionicons name="play-back" size={20} color={colors.textPrimary} />
+              <Text style={styles.seekText}>10s</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity style={styles.seekBtn} onPress={() => seekRelative(10)}>
-            <Ionicons name="play-forward" size={20} color={colors.textPrimary} />
-            <Text style={styles.seekText}>10s</Text>
-          </TouchableOpacity>
+            <TouchableOpacity style={styles.playBtn} onPress={togglePlayPause}>
+              <Ionicons name={isPlaying ? 'pause' : 'play'} size={24} color="#FFF" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.seekBtn} onPress={() => seekRelative(10)}>
+              <Ionicons name="play-forward" size={20} color={colors.textPrimary} />
+              <Text style={styles.seekText}>10s</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.securityBadge}>
+            <Ionicons name="shield-checkmark" size={14} color={colors.success} />
+            <Text style={styles.securityBadgeText}>Protected</Text>
+          </View>
         </View>
-
-        <View style={styles.securityBadge}>
-          <Ionicons name="shield-checkmark" size={14} color={colors.success} />
-          <Text style={styles.securityBadgeText}>محمي</Text>
-        </View>
-      </View>
+      )}
 
       {/* Lesson Details & Description */}
       <ScrollView style={styles.detailsScroll} contentContainerStyle={styles.detailsContent}>
@@ -336,13 +404,41 @@ export default function VideoPlayerScreen({ route, navigation }) {
           <Text style={styles.lessonHeading}>{lessonData?.title || title}</Text>
           <View style={styles.teacherRow}>
             <Ionicons name="person-circle-outline" size={20} color={colors.primaryLight} />
-            <Text style={styles.teacherName}>شرح: مستر بولا • معلم الفيزياء للثانوية العامة</Text>
+            <Text style={styles.teacherName}>Instructor: Mr.Poula Malak • Physics</Text>
           </View>
         </View>
 
+        {/* Optional Attached PDF Section */}
+        {lessonData?.pdf_url ? (
+          <View style={styles.pdfCard}>
+            <View style={styles.pdfCardRow}>
+              <View style={styles.pdfIconCircle}>
+                <Ionicons name="document-text" size={24} color={colors.primaryLight} />
+              </View>
+              <View style={styles.pdfInfoWrap}>
+                <Text style={styles.pdfTitle}>{lessonData.pdf_name || 'Lesson Notes & Sheet (PDF)'}</Text>
+                <Text style={styles.pdfSub}>Official physics notes and homework sheet</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.openPdfBtn}
+              onPress={() => {
+                const fullPdfUrl = lessonData.pdf_url.startsWith('http')
+                  ? lessonData.pdf_url
+                  : `${serverUrl}${lessonData.pdf_url}`;
+                Linking.openURL(fullPdfUrl);
+              }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="cloud-download-outline" size={16} color="#FFF" />
+              <Text style={styles.openPdfBtnText}>Open / Download PDF</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
         {lessonData?.description ? (
           <View style={styles.descCard}>
-            <Text style={styles.descHeading}>محتوى ونقاط الحصة:</Text>
+            <Text style={styles.descHeading}>Lecture Overview & Notes:</Text>
             <Text style={styles.descBody}>{lessonData.description}</Text>
           </View>
         ) : null}
@@ -350,17 +446,30 @@ export default function VideoPlayerScreen({ route, navigation }) {
         {/* Comments Section */}
         <View style={styles.commentsCard}>
           <View style={styles.commentsHeaderRow}>
+            <View style={styles.commentsTitleWrap}>
+              <Ionicons name="chatbubbles" size={20} color={colors.accent} />
+              <Text style={styles.commentsSectionTitle}>Questions & Discussion</Text>
+            </View>
             <View style={styles.commentCountBadge}>
               <Text style={styles.commentCountText}>{comments.length}</Text>
-            </View>
-            <View style={styles.commentsTitleWrap}>
-              <Text style={styles.commentsSectionTitle}>أسئلة واستفسارات الحصة</Text>
-              <Ionicons name="chatbubbles" size={20} color={colors.accent} />
             </View>
           </View>
 
           {/* Add Comment Input Bar */}
           <View style={styles.commentInputRow}>
+            <View style={styles.commentTextInputWrap}>
+              <TextInput
+                style={styles.commentTextInput}
+                placeholder="Ask Mr.Poula a question about this lecture..."
+                placeholderTextColor={colors.textMuted}
+                value={commentText}
+                onChangeText={setCommentText}
+                multiline
+                maxLength={1000}
+                textAlign="left"
+              />
+            </View>
+
             <TouchableOpacity
               style={[
                 styles.sendCommentBtn,
@@ -373,22 +482,9 @@ export default function VideoPlayerScreen({ route, navigation }) {
               {submittingComment ? (
                 <ActivityIndicator size="small" color="#FFF" />
               ) : (
-                <Ionicons name="send" size={16} color="#FFF" style={{ transform: [{ rotate: '180deg' }] }} />
+                <Ionicons name="send" size={16} color="#FFF" />
               )}
             </TouchableOpacity>
-
-            <View style={styles.commentTextInputWrap}>
-              <TextInput
-                style={styles.commentTextInput}
-                placeholder="اطرح سؤالك أو ملاحظتك لمستر بولا..."
-                placeholderTextColor={colors.textMuted}
-                value={commentText}
-                onChangeText={setCommentText}
-                multiline
-                maxLength={1000}
-                textAlign="right"
-              />
-            </View>
           </View>
 
           {/* Comments List */}
@@ -397,9 +493,9 @@ export default function VideoPlayerScreen({ route, navigation }) {
           ) : comments.length === 0 ? (
             <View style={styles.emptyCommentsWrap}>
               <Ionicons name="chatbubble-ellipses-outline" size={32} color={colors.textMuted} />
-              <Text style={styles.emptyCommentsTitle}>لا توجد تعليقات بعد</Text>
+              <Text style={styles.emptyCommentsTitle}>No questions yet</Text>
               <Text style={styles.emptyCommentsSubtitle}>
-                كن أول من يطرح سؤالاً أو استفساراً حول هذه الحصة لمستر بولا!
+                Be the first to ask Mr.Poula a question regarding this lecture!
               </Text>
             </View>
           ) : (
@@ -407,35 +503,7 @@ export default function VideoPlayerScreen({ route, navigation }) {
               {comments.map((item) => (
                 <View key={item.id} style={styles.commentBubble}>
                   <View style={styles.commentBubbleHeader}>
-                    {(item.user_id === user?.id || isAdmin) ? (
-                      <TouchableOpacity
-                        onPress={() => confirmDeleteComment(item.id)}
-                        style={styles.deleteBtn}
-                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                      >
-                        <Ionicons name="trash-outline" size={15} color={colors.danger} />
-                      </TouchableOpacity>
-                    ) : <View style={{ width: 16 }} />}
-
                     <View style={styles.commentUserGroup}>
-                      <View style={styles.commentUserInfoCol}>
-                        <View style={styles.authorBadgeRow}>
-                          <Text style={styles.commentAuthorName}>{item.user_name}</Text>
-                          {item.user_role === 'admin' ? (
-                            <View style={styles.adminRoleTag}>
-                              <Text style={styles.adminRoleTagText}>👑 مستر بولا</Text>
-                            </View>
-                          ) : (
-                            <View style={styles.studentRoleTag}>
-                              <Text style={styles.studentRoleTagText}>طالب</Text>
-                            </View>
-                          )}
-                        </View>
-                        <Text style={styles.commentTimestamp}>
-                          {formatCommentDate(item.created_at)}
-                        </Text>
-                      </View>
-
                       {/* Avatar */}
                       <View style={styles.commentAvatarCircle}>
                         {item.user_avatar ? (
@@ -448,22 +516,43 @@ export default function VideoPlayerScreen({ route, navigation }) {
                             style={styles.commentAvatarPhoto}
                           />
                         ) : (
-                          <View
-                            style={[
-                              styles.commentAvatarInitialBox,
-                              item.user_role === 'admin' && styles.commentAvatarAdminBox,
-                            ]}
-                          >
-                            <Text style={styles.commentInitialText}>
-                              {(item.user_name || 'ط')[0]}
-                            </Text>
-                          </View>
+                          <Ionicons name="person" size={16} color={colors.textMuted} />
                         )}
                       </View>
+
+                      <View style={styles.commentUserInfoCol}>
+                        <View style={styles.authorBadgeRow}>
+                          <Text style={styles.commentAuthorName}>{item.user_name}</Text>
+                          {item.user_role === 'admin' ? (
+                            <View style={styles.adminRoleTag}>
+                              <Text style={styles.adminRoleTagText}>👑 Mr.Poula</Text>
+                            </View>
+                          ) : (
+                            <View style={styles.studentRoleTag}>
+                              <Text style={styles.studentRoleTagText}>Student</Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text style={styles.commentTimestamp}>
+                          {item.created_at ? new Date(item.created_at).toLocaleDateString() : ''}
+                        </Text>
+                      </View>
                     </View>
+
+                    {item.user_id === user?.id || isAdmin ? (
+                      <TouchableOpacity
+                        onPress={() => confirmDeleteComment(item.id)}
+                        style={styles.deleteBtn}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <Ionicons name="trash-outline" size={15} color={colors.danger} />
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={{ width: 16 }} />
+                    )}
                   </View>
 
-                  <Text style={styles.commentTextContent}>{item.comment_text}</Text>
+                  <Text style={styles.commentBodyText}>{item.comment_text}</Text>
                 </View>
               ))}
             </View>
@@ -474,7 +563,7 @@ export default function VideoPlayerScreen({ route, navigation }) {
         <View style={styles.antiPiracyNotice}>
           <Ionicons name="lock-closed" size={18} color={colors.primaryLight} />
           <Text style={styles.antiPiracyText}>
-            هذا المحتوى محمي بحقوق الملكية الفكرية. يُمنع تسجيل الشاشة أو إعادة تداول الحصة. الحساب مراقب بعلامة مائية ديناميكية ومربوط بجهازك فقط.
+            This content is protected by intellectual property rights. Screen recording or sharing is strictly prohibited. Your session is dynamically watermarked and bound to your device.
           </Text>
         </View>
       </ScrollView>
@@ -488,7 +577,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   topHeader: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: 50,
@@ -506,7 +595,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   playerContainer: {
     width: SCREEN_WIDTH,
@@ -538,8 +627,56 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
   },
+  lockedContainer: {
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    width: '90%',
+  },
+  lockedTitle: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
+  lockedSubtitle: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  lockCodeInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1.5,
+    borderColor: colors.gold,
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    color: colors.gold,
+    fontSize: 15,
+    fontWeight: 'bold',
+    letterSpacing: 2,
+    width: '85%',
+    marginVertical: 4,
+  },
+  unlockBtn: {
+    backgroundColor: colors.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginTop: 4,
+  },
+  unlockBtnDisabled: {
+    opacity: 0.6,
+  },
+  unlockBtnText: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
   controlsBar: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: colors.surface,
@@ -562,7 +699,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   centerControls: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
   },
@@ -584,7 +721,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   securityBadge: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     backgroundColor: 'rgba(16, 185, 129, 0.12)',
@@ -615,10 +752,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   teacherRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginTop: 8,
@@ -626,6 +763,55 @@ const styles = StyleSheet.create({
   teacherName: {
     fontSize: 12,
     color: colors.textSecondary,
+  },
+  pdfCard: {
+    backgroundColor: colors.surface,
+    padding: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(56, 189, 248, 0.3)',
+    marginBottom: 12,
+    gap: 12,
+  },
+  pdfCardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  pdfIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(2, 132, 199, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pdfInfoWrap: {
+    flex: 1,
+  },
+  pdfTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+  },
+  pdfSub: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  openPdfBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: colors.primary,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  openPdfBtnText: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: 'bold',
   },
   descCard: {
     backgroundColor: colors.surface,
@@ -639,17 +825,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: colors.primaryLight,
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 8,
   },
   descBody: {
     fontSize: 13,
     color: colors.textSecondary,
     lineHeight: 22,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   antiPiracyNotice: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     backgroundColor: 'rgba(2, 132, 199, 0.1)',
     borderWidth: 1,
     borderColor: 'rgba(56, 189, 248, 0.25)',
@@ -663,7 +849,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 11,
     lineHeight: 18,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   // Comments Section Styles
   commentsCard: {
@@ -684,7 +870,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(255, 255, 255, 0.06)',
   },
   commentsTitleWrap: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
@@ -785,7 +971,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   commentUserGroup: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
@@ -804,26 +990,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  commentAvatarInitialBox: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(2, 132, 199, 0.25)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  commentAvatarAdminBox: {
-    backgroundColor: 'rgba(245, 158, 11, 0.25)',
-  },
-  commentInitialText: {
-    color: colors.textPrimary,
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
   commentUserInfoCol: {
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
   },
   authorBadgeRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
@@ -860,10 +1031,10 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     marginTop: 2,
   },
-  commentTextContent: {
+  commentBodyText: {
     color: colors.textPrimary,
     fontSize: 13,
     lineHeight: 20,
-    textAlign: 'right',
+    textAlign: 'left',
   },
 });

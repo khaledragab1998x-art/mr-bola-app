@@ -38,7 +38,7 @@ export default function AdminCoursesScreen({ navigation }) {
   const [currentCourseId, setCurrentCourseId] = useState(null);
   const [courseTitle, setCourseTitle] = useState('');
   const [courseDescription, setCourseDescription] = useState('');
-  const [academicYear, setAcademicYear] = useState('الصف الثالث الثانوي');
+  const [academicYear, setAcademicYear] = useState('3rd Secondary');
   const [price, setPrice] = useState('0');
   const [isPublished, setIsPublished] = useState(true);
   const [thumbnailImage, setThumbnailImage] = useState(null);
@@ -72,7 +72,7 @@ export default function AdminCoursesScreen({ navigation }) {
     setCurrentCourseId(null);
     setCourseTitle('');
     setCourseDescription('');
-    setAcademicYear('الصف الثالث الثانوي');
+    setAcademicYear('3rd Secondary');
     setPrice('0');
     setIsPublished(true);
     setThumbnailImage(null);
@@ -84,7 +84,7 @@ export default function AdminCoursesScreen({ navigation }) {
     setCurrentCourseId(course.id);
     setCourseTitle(course.title);
     setCourseDescription(course.description || '');
-    setAcademicYear(course.academic_year || 'الصف الثالث الثانوي');
+    setAcademicYear(course.academic_year || '3rd Secondary');
     setPrice(String(course.price || 0));
     setIsPublished(Boolean(course.is_published));
     setThumbnailImage(null);
@@ -106,7 +106,7 @@ export default function AdminCoursesScreen({ navigation }) {
 
   async function handleSaveCourse() {
     if (!courseTitle.trim()) {
-      Alert.alert('تنبيه', 'عنوان الكورس مطلوب');
+      Alert.alert('Notice', 'Course title is required');
       return;
     }
 
@@ -135,14 +135,14 @@ export default function AdminCoursesScreen({ navigation }) {
       }
 
       if (res.success) {
-        Alert.alert('تم بنجاح', isEditing ? 'تم تحديث الكورس' : 'تم إنشاء الكورس بنجاح');
+        Alert.alert('Success', isEditing ? 'Course updated successfully' : 'Course created successfully');
         setModalVisible(false);
         loadCourses();
       } else {
-        Alert.alert('خطأ', res.message || 'فشل حفظ الكورس');
+        Alert.alert('Error', res.message || 'Failed to save course');
       }
     } catch (e) {
-      Alert.alert('خطأ', 'تعذر حفظ الكورس');
+      Alert.alert('Error', 'Could not save course');
     } finally {
       setSavingCourse(false);
     }
@@ -160,36 +160,36 @@ export default function AdminCoursesScreen({ navigation }) {
         setCourses((prev) =>
           prev.map((c) => (c.id === course.id ? { ...c, is_published: originalStatus } : c))
         );
-        Alert.alert('خطأ', 'فشل تغيير حالة نشر الكورس');
+        Alert.alert('Error', 'Failed to update course publish status');
       }
     } catch (e) {
       setCourses((prev) =>
         prev.map((c) => (c.id === course.id ? { ...c, is_published: originalStatus } : c))
       );
-      Alert.alert('خطأ', 'تعذر الاتصال بالسيرفر');
+      Alert.alert('Error', 'Cannot connect to server');
     }
   }
 
   function handleDeleteCourse(course) {
     Alert.alert(
-      'تأكيد حذف الكورس',
-      `هل أنت متأكد من حذف كورس "${course.title}" وجميع فيديوهاته وملفاته نهائياً؟`,
+      'Delete Course',
+      `Are you sure you want to permanently delete course "${course.title}" and all its exclusive video lectures?`,
       [
-        { text: 'إلغاء', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: 'نعم، احذف',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
               const res = await deleteCourseApi(course.id);
               if (res.success) {
-                Alert.alert('تم الحذف', 'تم حذف الكورس بنجاح');
+                Alert.alert('Deleted', 'Course deleted successfully');
                 setCourses((prev) => prev.filter((c) => c.id !== course.id));
               } else {
-                Alert.alert('خطأ', res.message || 'فشل حذف الكورس');
+                Alert.alert('Error', res.message || 'Failed to delete course');
               }
             } catch (e) {
-              Alert.alert('خطأ', 'فشل حذف الكورس');
+              Alert.alert('Error', 'Failed to delete course');
             }
           },
         },
@@ -198,9 +198,9 @@ export default function AdminCoursesScreen({ navigation }) {
   }
 
   function formatDuration(seconds) {
-    if (!seconds || seconds === 0) return '0 دقيقة';
+    if (!seconds || seconds === 0) return '0 min';
     const mins = Math.round(seconds / 60);
-    return `${mins} دقيقة`;
+    return `${mins} min`;
   }
 
   const filteredCourses = courses.filter((c) =>
@@ -216,9 +216,9 @@ export default function AdminCoursesScreen({ navigation }) {
           onPress={() => navigation.goBack()}
           activeOpacity={0.8}
         >
-          <Ionicons name="arrow-forward" size={24} color={colors.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>إدارة الكورسات والدورات</Text>
+        <Text style={styles.headerTitle}>Manage Courses</Text>
         <TouchableOpacity style={styles.addBtn} onPress={openCreateModal} activeOpacity={0.8}>
           <Ionicons name="add" size={22} color="#fff" />
         </TouchableOpacity>
@@ -229,7 +229,7 @@ export default function AdminCoursesScreen({ navigation }) {
         <Ionicons name="search-outline" size={20} color={colors.textMuted} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="ابحث باسم الكورس..."
+          placeholder="Search courses..."
           placeholderTextColor={colors.textMuted}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -243,7 +243,7 @@ export default function AdminCoursesScreen({ navigation }) {
 
       <View style={styles.infoBar}>
         <Text style={styles.infoText}>
-          إجمالي الكورسات: {filteredCourses.length} من {courses.length}
+          Total Courses: {filteredCourses.length} of {courses.length}
         </Text>
       </View>
 
@@ -252,12 +252,12 @@ export default function AdminCoursesScreen({ navigation }) {
       ) : filteredCourses.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="school-outline" size={56} color={colors.textMuted} />
-          <Text style={styles.emptyTitle}>لا توجد كورسات مضافة</Text>
+          <Text style={styles.emptyTitle}>No courses found</Text>
           <Text style={styles.emptySub}>
-            {searchQuery ? 'جرب البحث باسم آخر' : 'اضغط على زر (+) في الأعلى لإنشاء كورس جديد'}
+            {searchQuery ? 'Try a different search query' : 'Tap the (+) button at top right to create a course'}
           </Text>
           <TouchableOpacity style={styles.createNowBtn} onPress={openCreateModal} activeOpacity={0.8}>
-            <Text style={styles.createNowText}>إنشاء كورس الآن 🎓</Text>
+            <Text style={styles.createNowText}>Create Course Now 🎓</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -312,10 +312,10 @@ export default function AdminCoursesScreen({ navigation }) {
                     ]}
                   >
                     <Text style={styles.statusText}>
-                      {course.is_published ? 'منشور للطلاب' : 'مسودة غير منشورة'}
+                      {course.is_published ? 'Published' : 'Draft (Hidden)'}
                     </Text>
                   </View>
-                  <Text style={styles.yearTag}>{course.academic_year || 'الصف الثالث الثانوي'}</Text>
+                  <Text style={styles.yearTag}>{course.academic_year || '3rd Secondary'}</Text>
                 </View>
 
                 <TouchableOpacity
@@ -339,7 +339,7 @@ export default function AdminCoursesScreen({ navigation }) {
                 <View style={styles.metaRow}>
                   <View style={styles.metaItem}>
                     <Ionicons name="videocam-outline" size={14} color={colors.primaryLight} />
-                    <Text style={styles.metaText}>{course.videos_count || 0} فيديو حصري</Text>
+                    <Text style={styles.metaText}>{course.videos_count || 0} exclusive videos</Text>
                   </View>
                   <View style={styles.metaItem}>
                     <Ionicons name="time-outline" size={14} color={colors.textMuted} />
@@ -348,14 +348,14 @@ export default function AdminCoursesScreen({ navigation }) {
                   <View style={styles.metaItem}>
                     <Ionicons name="pricetag-outline" size={14} color={colors.accent} />
                     <Text style={styles.metaText}>
-                      {Number(course.price) > 0 ? `${course.price} ج.م` : 'مجاني'}
+                      {Number(course.price) > 0 ? `${course.price} EGP` : 'Free'}
                     </Text>
                   </View>
                 </View>
 
                 <View style={styles.actionDivider} />
 
-                {/* Manage Videos Button (Primary Action) */}
+                {/* Manage Videos Button */}
                 <TouchableOpacity
                   style={styles.manageVideosBtn}
                   onPress={() =>
@@ -366,11 +366,13 @@ export default function AdminCoursesScreen({ navigation }) {
                   }
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="film-outline" size={18} color="#fff" />
-                  <Text style={styles.manageVideosText}>
-                    إدارة فيديوهات الكورس ({course.videos_count || 0})
-                  </Text>
-                  <Ionicons name="chevron-back" size={18} color="#fff" />
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Ionicons name="film-outline" size={18} color="#fff" />
+                    <Text style={styles.manageVideosText}>
+                      Manage Course Videos ({course.videos_count || 0})
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color="#fff" />
                 </TouchableOpacity>
 
                 {/* Controls */}
@@ -382,7 +384,7 @@ export default function AdminCoursesScreen({ navigation }) {
                       trackColor={{ false: colors.surfaceBorder, true: colors.primary }}
                       thumbColor={course.is_published ? colors.accent : '#94A3B8'}
                     />
-                    <Text style={styles.controlLabel}>النشر للطلاب</Text>
+                    <Text style={styles.controlLabel}>Publish</Text>
                   </View>
 
                   <View style={styles.btnGroup}>
@@ -391,8 +393,8 @@ export default function AdminCoursesScreen({ navigation }) {
                       onPress={() => openEditModal(course)}
                       activeOpacity={0.7}
                     >
-                      <Ionicons name="pencil" size={16} color={colors.primaryLight} />
-                      <Text style={styles.editBtnText}>تعديل</Text>
+                      <Ionicons name="pencil" size={15} color={colors.primaryLight} />
+                      <Text style={styles.editBtnText}>Edit</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -400,7 +402,7 @@ export default function AdminCoursesScreen({ navigation }) {
                       onPress={() => handleDeleteCourse(course)}
                       activeOpacity={0.7}
                     >
-                      <Ionicons name="trash-outline" size={16} color={colors.error} />
+                      <Ionicons name="trash-outline" size={15} color={colors.danger} />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -421,7 +423,7 @@ export default function AdminCoursesScreen({ navigation }) {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {isEditing ? 'تعديل بيانات الكورس' : 'إنشاء كورس جديد'}
+                {isEditing ? 'Edit Course Details' : 'Create New Course'}
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Ionicons name="close" size={24} color={colors.textPrimary} />
@@ -429,44 +431,44 @@ export default function AdminCoursesScreen({ navigation }) {
             </View>
 
             <ScrollView style={styles.modalBody}>
-              <Text style={styles.inputLabel}>عنوان الكورس *</Text>
+              <Text style={styles.inputLabel}>Course Title *</Text>
               <TextInput
                 style={styles.modalInput}
                 value={courseTitle}
                 onChangeText={setCourseTitle}
-                placeholder="مثال: كورس المراجعة الشاملة - الكهربية الحديثة"
+                placeholder="e.g. Modern Physics Comprehensive Review"
                 placeholderTextColor={colors.textMuted}
-                textAlign="right"
+                textAlign="left"
               />
 
-              <Text style={styles.inputLabel}>وصف الكورس</Text>
+              <Text style={styles.inputLabel}>Course Description</Text>
               <TextInput
                 style={[styles.modalInput, styles.textArea]}
                 value={courseDescription}
                 onChangeText={setCourseDescription}
-                placeholder="نبذة عن محتوى الكورس والموضوعات التي يغطيها..."
+                placeholder="Brief summary of topics covered in this course..."
                 placeholderTextColor={colors.textMuted}
                 multiline
                 numberOfLines={3}
-                textAlign="right"
+                textAlign="left"
               />
 
-              <Text style={styles.inputLabel}>السنة الدراسية</Text>
+              <Text style={styles.inputLabel}>Academic Grade</Text>
               <TextInput
                 style={styles.modalInput}
                 value={academicYear}
                 onChangeText={setAcademicYear}
-                placeholder="الصف الثالث الثانوي"
+                placeholder="3rd Secondary"
                 placeholderTextColor={colors.textMuted}
-                textAlign="right"
+                textAlign="left"
               />
 
               {/* Cover Image Picker */}
-              <Text style={styles.inputLabel}>صورة غلاف الكورس (بوستر الكورس)</Text>
+              <Text style={styles.inputLabel}>Course Cover / Poster (16:9)</Text>
               <TouchableOpacity style={styles.coverPickBtn} onPress={pickThumbnail} activeOpacity={0.8}>
                 <Ionicons name="image-outline" size={20} color={colors.primaryLight} />
                 <Text style={styles.coverPickText}>
-                  {thumbnailImage ? 'تم اختيار الغلاف (اضغط للتغيير)' : 'اختر صورة من الهاتف (نسبة 16:9)'}
+                  {thumbnailImage ? 'Cover image selected (tap to change)' : 'Select image from device (16:9 ratio)'}
                 </Text>
               </TouchableOpacity>
 
@@ -479,13 +481,13 @@ export default function AdminCoursesScreen({ navigation }) {
               )}
 
               <View style={styles.modalToggleRow}>
+                <Text style={styles.modalToggleLabel}>Publish course to students immediately</Text>
                 <Switch
                   value={isPublished}
                   onValueChange={setIsPublished}
                   trackColor={{ false: colors.surfaceBorder, true: colors.primary }}
                   thumbColor={isPublished ? colors.accent : '#94A3B8'}
                 />
-                <Text style={styles.modalToggleLabel}>نشر الكورس وجعله متاحاً للطلاب الآن</Text>
               </View>
 
               <TouchableOpacity
@@ -498,7 +500,7 @@ export default function AdminCoursesScreen({ navigation }) {
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <Text style={styles.saveBtnText}>
-                    {isEditing ? 'حفظ التعديلات' : 'إنشاء الكورس'}
+                    {isEditing ? 'Save Changes' : 'Create Course'}
                   </Text>
                 )}
               </TouchableOpacity>
@@ -516,7 +518,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
@@ -540,7 +542,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   searchBarWrap: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
     marginHorizontal: 16,
@@ -552,13 +554,13 @@ const styles = StyleSheet.create({
     height: 46,
   },
   searchIcon: {
-    marginLeft: 8,
+    marginRight: 8,
   },
   searchInput: {
     flex: 1,
     color: colors.textPrimary,
     fontSize: 14,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   infoBar: {
     paddingHorizontal: 20,
@@ -568,7 +570,7 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 12,
     color: colors.textMuted,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   scrollList: {
     padding: 16,
@@ -626,7 +628,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   cardHeaderRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 8,
@@ -655,23 +657,23 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   courseDescription: {
     fontSize: 12,
     color: colors.textSecondary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginTop: 4,
     lineHeight: 18,
   },
   metaRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
     marginTop: 10,
   },
   metaItem: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
@@ -685,7 +687,7 @@ const styles = StyleSheet.create({
     marginVertical: 12,
   },
   manageVideosBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: colors.primary,
@@ -700,12 +702,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   controlsRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   toggleControl: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
@@ -715,12 +717,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   btnGroup: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
   editBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(56, 189, 248, 0.1)',
     paddingHorizontal: 10,
@@ -757,7 +759,7 @@ const styles = StyleSheet.create({
     maxHeight: '85%',
   },
   modalHeader: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingBottom: 14,
@@ -776,7 +778,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: colors.textSecondary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 6,
     marginTop: 8,
   },
@@ -794,7 +796,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   coverPickBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(56, 189, 248, 0.1)',
     borderRadius: 10,
@@ -815,7 +817,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   modalToggleRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 14,

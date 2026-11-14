@@ -58,9 +58,9 @@ export default function CoursesScreen({ navigation }) {
   }
 
   function formatDuration(seconds) {
-    if (!seconds || seconds === 0) return '0 دقيقة';
+    if (!seconds || seconds === 0) return '0 min';
     const mins = Math.round(seconds / 60);
-    return `${mins} دقيقة`;
+    return `${mins} min`;
   }
 
   const filteredCourses = courses.filter((c) =>
@@ -72,9 +72,9 @@ export default function CoursesScreen({ navigation }) {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>الكورسات والدورات الشاملة</Text>
+        <Text style={styles.headerTitle}>Physics Courses</Text>
         <Text style={styles.headerSubtitle}>
-          دورات فيزياء مكثفة مرتبة من البداية حتى التفوق والـ 60/60
+          Master physics step-by-step from fundamental laws to final exam mastery
         </Text>
       </View>
 
@@ -83,7 +83,7 @@ export default function CoursesScreen({ navigation }) {
         <Ionicons name="search-outline" size={20} color={colors.textMuted} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="ابحث في الكورسات والدورات المتاحة..."
+          placeholder="Search physics courses..."
           placeholderTextColor={colors.textMuted}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -100,11 +100,11 @@ export default function CoursesScreen({ navigation }) {
       ) : filteredCourses.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="school-outline" size={56} color={colors.textMuted} />
-          <Text style={styles.emptyTitle}>لا توجد كورسات متاحة حالياً</Text>
+          <Text style={styles.emptyTitle}>No courses found</Text>
           <Text style={styles.emptySub}>
             {searchQuery
-              ? 'لا توجد نتائج مطابقة لبحثك'
-              : 'سيقوم مستر بولا بنشر كورسات ومراجعات جديدة قريباً!'}
+              ? 'No courses match your search criteria'
+              : 'Mr.Poula will publish new courses and revision series soon!'}
           </Text>
         </View>
       ) : (
@@ -147,11 +147,11 @@ export default function CoursesScreen({ navigation }) {
               <View style={styles.cardContent}>
                 <View style={styles.cardTopRow}>
                   <View style={styles.badgeWrap}>
-                    <Text style={styles.badgeText}>{course.academic_year || 'الصف الثالث الثانوي'}</Text>
+                    <Text style={styles.badgeText}>{course.academic_year || '3rd Secondary'}</Text>
                   </View>
                   <View style={styles.priceBadge}>
                     <Text style={styles.priceBadgeText}>
-                      {Number(course.price) > 0 ? `${course.price} ج.م` : 'متاح مجاناً'}
+                      {Number(course.price) > 0 ? `${course.price} EGP` : 'Free'}
                     </Text>
                   </View>
                 </View>
@@ -166,7 +166,7 @@ export default function CoursesScreen({ navigation }) {
                 <View style={styles.cardFooter}>
                   <View style={styles.metaItem}>
                     <Ionicons name="videocam-outline" size={15} color={colors.primaryLight} />
-                    <Text style={styles.metaText}>{course.videos_count || 0} محاضرات</Text>
+                    <Text style={styles.metaText}>{course.videos_count || 0} lectures</Text>
                   </View>
 
                   <View style={styles.metaItem}>
@@ -175,8 +175,8 @@ export default function CoursesScreen({ navigation }) {
                   </View>
 
                   <View style={styles.viewCourseBtn}>
-                    <Text style={styles.viewCourseText}>استعراض الكورس</Text>
-                    <Ionicons name="arrow-back" size={14} color={colors.primaryLight} />
+                    <Text style={styles.viewCourseText}>View Course</Text>
+                    <Ionicons name="arrow-forward" size={14} color={colors.primaryLight} />
                   </View>
                 </View>
               </View>
@@ -189,7 +189,7 @@ export default function CoursesScreen({ navigation }) {
       <OtpVerificationModal
         visible={showOtpModal}
         onClose={() => setShowOtpModal(false)}
-        onVerified={() => setShowOtpModal(false)}
+        onSuccess={() => setShowOtpModal(false)}
       />
     </View>
   );
@@ -207,21 +207,21 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.surfaceBorder,
-    alignItems: 'flex-end',
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: colors.textPrimary,
+    textAlign: 'left',
   },
   headerSubtitle: {
     fontSize: 12,
     color: colors.textSecondary,
     marginTop: 4,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   searchBarWrap: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
     marginHorizontal: 16,
@@ -233,13 +233,13 @@ const styles = StyleSheet.create({
     height: 46,
   },
   searchIcon: {
-    marginLeft: 8,
+    marginRight: 8,
   },
   searchInput: {
     flex: 1,
     color: colors.textPrimary,
     fontSize: 14,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   scrollList: {
     padding: 16,
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   cardTopRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 8,
@@ -317,17 +317,17 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   courseDescription: {
     fontSize: 12,
     color: colors.textSecondary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginTop: 4,
     lineHeight: 18,
   },
   cardFooter: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 14,
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.surfaceBorder,
   },
   metaItem: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   viewCourseBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },

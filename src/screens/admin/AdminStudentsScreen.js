@@ -46,33 +46,33 @@ export default function AdminStudentsScreen({ navigation }) {
 
   async function handleResetDevice(student) {
     Alert.alert(
-      'فك ربط الجهاز',
-      `هل تريد فك ربط الجهاز للطالب "${student.name}"؟\nسيتمكن الطالب من تسجيل الدخول من جهاز جديد.`,
+      'Unlink Device',
+      `Do you want to reset the bound device for student "${student.name}"?\nThe student will be allowed to sign in from a new phone.`,
       [
         {
-          text: 'فك الربط الآن',
+          text: 'Unlink Device Now',
           onPress: async () => {
             try {
               const res = await resetStudentDeviceApi(student.id);
               if (res.success) {
-                Alert.alert('نجاح', res.message);
+                Alert.alert('Success', res.message || 'Device unlinked successfully');
                 loadStudents(search);
               }
             } catch (err) {
-              Alert.alert('خطأ', 'فشل فك ربط الجهاز');
+              Alert.alert('Error', 'Failed to unlink device');
             }
           },
         },
-        { text: 'إلغاء', style: 'cancel' }
+        { text: 'Cancel', style: 'cancel' },
       ]
     );
   }
 
   async function handleToggleBlock(student) {
-    const actionText = student.is_blocked ? 'إلغاء حظر' : 'حظر';
+    const actionText = student.is_blocked ? 'Unblock' : 'Block';
     Alert.alert(
-      `${actionText} الحساب`,
-      `هل أنت متأكد من ${actionText} حساب الطالب "${student.name}"؟`,
+      `${actionText} Account`,
+      `Are you sure you want to ${actionText.toLowerCase()} the account for "${student.name}"?`,
       [
         {
           text: actionText,
@@ -81,15 +81,15 @@ export default function AdminStudentsScreen({ navigation }) {
             try {
               const res = await toggleStudentBlockApi(student.id);
               if (res.success) {
-                Alert.alert('نجاح', res.message);
+                Alert.alert('Success', res.message || `Student account ${actionText.toLowerCase()}ed`);
                 loadStudents(search);
               }
             } catch (err) {
-              Alert.alert('خطأ', 'فشل تغيير حالة الحساب');
+              Alert.alert('Error', 'Failed to update account status');
             }
           },
         },
-        { text: 'إلغاء', style: 'cancel' }
+        { text: 'Cancel', style: 'cancel' },
       ]
     );
   }
@@ -98,9 +98,9 @@ export default function AdminStudentsScreen({ navigation }) {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-forward" size={24} color={colors.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>إدارة الطلاب والأجهزة ({students.length})</Text>
+        <Text style={styles.headerTitle}>Students & Devices ({students.length})</Text>
       </View>
 
       {/* Search Input */}
@@ -108,11 +108,11 @@ export default function AdminStudentsScreen({ navigation }) {
         <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="ابحث بالاسم أو البريد أو رقم الهاتف..."
+          placeholder="Search by name, email, or phone number..."
           placeholderTextColor={colors.textMuted}
           value={search}
           onChangeText={handleSearch}
-          textAlign="right"
+          textAlign="left"
         />
       </View>
 
@@ -121,40 +121,53 @@ export default function AdminStudentsScreen({ navigation }) {
       ) : students.length === 0 ? (
         <View style={styles.emptyBox}>
           <Ionicons name="people-outline" size={48} color={colors.textMuted} />
-          <Text style={styles.emptyText}>لم يتم العثور على طلاب مطابقة</Text>
+          <Text style={styles.emptyText}>No matching students found</Text>
         </View>
       ) : (
         <ScrollView
           contentContainerStyle={styles.scrollList}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadStudents(search); }} tintColor={colors.primaryLight} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => {
+                setRefreshing(true);
+                loadStudents(search);
+              }}
+              tintColor={colors.primaryLight}
+            />
+          }
         >
           {students.map((student) => (
             <View key={student.id} style={styles.studentCard}>
               <View style={styles.studentTopRow}>
+                <View style={styles.studentNameWrap}>
+                  <Text style={styles.studentName}>{student.name}</Text>
+                  <Text style={styles.studentEmail}>{student.email}</Text>
+                  <Text style={styles.studentPhone}>{student.phone}</Text>
+                </View>
+
                 <View style={styles.badgesCol}>
-                  <View style={[
-                    styles.badge,
-                    student.is_email_verified ? styles.verifiedBadge : styles.unverifiedBadge
-                  ]}>
-                    <Text style={[
-                      styles.badgeText,
-                      { color: student.is_email_verified ? colors.success : colors.warning }
-                    ]}>
-                      {student.is_email_verified ? 'إيميل مؤكد' : 'غير مؤكد'}
+                  <View
+                    style={[
+                      styles.badge,
+                      student.is_email_verified ? styles.verifiedBadge : styles.unverifiedBadge,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.badgeText,
+                        { color: student.is_email_verified ? colors.success : colors.warning },
+                      ]}
+                    >
+                      {student.is_email_verified ? 'Verified' : 'Unverified'}
                     </Text>
                   </View>
 
                   {student.is_blocked ? (
                     <View style={[styles.badge, styles.blockedBadge]}>
-                      <Text style={[styles.badgeText, { color: colors.danger }]}>محظور</Text>
+                      <Text style={[styles.badgeText, { color: colors.danger }]}>Blocked</Text>
                     </View>
                   ) : null}
-                </View>
-
-                <View style={styles.studentNameWrap}>
-                  <Text style={styles.studentName}>{student.name}</Text>
-                  <Text style={styles.studentEmail}>{student.email}</Text>
-                  <Text style={styles.studentPhone}>{student.phone}</Text>
                 </View>
               </View>
 
@@ -166,7 +179,9 @@ export default function AdminStudentsScreen({ navigation }) {
                   color={student.device_id ? colors.accent : colors.textMuted}
                 />
                 <Text style={styles.deviceText}>
-                  {student.device_id ? `الجهاز: ${student.device_id.substring(0, 16)}...` : 'لم يتم ربط جهاز بعد'}
+                  {student.device_id
+                    ? `Device: ${student.device_id.substring(0, 18)}...`
+                    : 'No device bound yet'}
                 </Text>
               </View>
 
@@ -179,7 +194,7 @@ export default function AdminStudentsScreen({ navigation }) {
                     activeOpacity={0.8}
                   >
                     <Ionicons name="refresh-circle-outline" size={16} color={colors.primaryLight} />
-                    <Text style={styles.resetDeviceText}>فك ربط الجهاز</Text>
+                    <Text style={styles.resetDeviceText}>Unlink Device</Text>
                   </TouchableOpacity>
                 ) : null}
 
@@ -194,7 +209,7 @@ export default function AdminStudentsScreen({ navigation }) {
                     color={student.is_blocked ? colors.success : colors.danger}
                   />
                   <Text style={[styles.blockText, student.is_blocked && { color: colors.success }]}>
-                    {student.is_blocked ? 'إلغاء الحظر' : 'حظر الطالب'}
+                    {student.is_blocked ? 'Unblock Student' : 'Block Student'}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -212,7 +227,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: 50,
@@ -231,7 +246,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   searchWrap: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
     marginHorizontal: 16,
@@ -243,12 +258,13 @@ const styles = StyleSheet.create({
     height: 46,
   },
   searchIcon: {
-    marginLeft: 8,
+    marginRight: 8,
   },
   searchInput: {
     flex: 1,
     color: colors.textPrimary,
     fontSize: 13,
+    textAlign: 'left',
   },
   scrollList: {
     padding: 16,
@@ -263,12 +279,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   studentTopRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
   studentNameWrap: {
-    alignItems: 'flex-end',
     flex: 1,
   },
   studentName: {
@@ -287,7 +302,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   badgesCol: {
-    alignItems: 'flex-start',
+    alignItems: 'flex-end',
     gap: 6,
   },
   badge: {
@@ -309,7 +324,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   deviceRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     backgroundColor: colors.background,
@@ -322,7 +337,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   cardActions: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: 10,
     marginTop: 12,
@@ -331,7 +346,7 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(255, 255, 255, 0.05)',
   },
   resetDeviceBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(56, 189, 248, 0.12)',
     paddingHorizontal: 12,
@@ -345,7 +360,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   blockBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(239, 68, 68, 0.12)',
     paddingHorizontal: 12,

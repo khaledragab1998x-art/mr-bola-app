@@ -52,18 +52,18 @@ export default function CourseDetailsScreen({ route, navigation }) {
   function handleVideoClick(video) {
     if (isAccessBlockedByVerification && !video.is_free_preview) {
       Alert.alert(
-        'تأكيد الإيميل مطلوب',
-        'عذراً، يجب تأكيد بريدك الإلكتروني أولاً لمشاهدة محاضرات هذا الكورس.',
+        'Email Verification Required',
+        'Please verify your email address first to watch lectures in this course.',
         [
-          { text: 'تأكيد الآن', onPress: () => setShowOtpModal(true) },
-          { text: 'إلغاء', style: 'cancel' },
+          { text: 'Verify Now', onPress: () => setShowOtpModal(true) },
+          { text: 'Cancel', style: 'cancel' },
         ]
       );
       return;
     }
 
     if (video.status === 'processing') {
-      Alert.alert('جاري التجهيز', 'هذا الفيديو قيد المعالجة الآن على السيرفر وسيكون متاحاً خلال لحظات.');
+      Alert.alert('Processing', 'This video is currently being compressed on the server and will be ready shortly.');
       return;
     }
 
@@ -75,10 +75,10 @@ export default function CourseDetailsScreen({ route, navigation }) {
   }
 
   function formatDuration(seconds) {
-    if (!seconds || seconds === 0) return 'غير محدد';
+    if (!seconds || seconds === 0) return 'N/A';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs} دقيقة`;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs} min`;
   }
 
   return (
@@ -90,10 +90,10 @@ export default function CourseDetailsScreen({ route, navigation }) {
           onPress={() => navigation.goBack()}
           activeOpacity={0.8}
         >
-          <Ionicons name="arrow-forward" size={24} color={colors.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          {course?.title || title || 'تفاصيل الكورس'}
+          {course?.title || title || 'Course Details'}
         </Text>
         <View style={{ width: 36 }} />
       </View>
@@ -136,12 +136,12 @@ export default function CourseDetailsScreen({ route, navigation }) {
             <View style={styles.badgeRow}>
               <View style={styles.yearBadge}>
                 <Text style={styles.yearBadgeText}>
-                  {course?.academic_year || 'الصف الثالث الثانوي'}
+                  {course?.academic_year || '3rd Secondary'}
                 </Text>
               </View>
               <View style={styles.countBadge}>
                 <Ionicons name="film-outline" size={14} color={colors.primaryLight} />
-                <Text style={styles.countBadgeText}>{videos.length} محاضرات</Text>
+                <Text style={styles.countBadgeText}>{videos.length} lectures</Text>
               </View>
             </View>
 
@@ -155,7 +155,7 @@ export default function CourseDetailsScreen({ route, navigation }) {
             <View style={styles.securityNoteRow}>
               <Ionicons name="shield-checkmark" size={16} color={colors.success} />
               <Text style={styles.securityNoteText}>
-                بث فائق السرعة ومشفر (HLS) مع نظام العلامة المائية للطلاب
+                Secure encrypted HLS streaming with anti-piracy student watermark
               </Text>
             </View>
           </View>
@@ -163,14 +163,14 @@ export default function CourseDetailsScreen({ route, navigation }) {
           {/* Curriculum Section Heading */}
           <View style={styles.sectionHeadingRow}>
             <Ionicons name="list" size={20} color={colors.accent} />
-            <Text style={styles.sectionHeadingText}>فهرس محاضرات الكورس</Text>
+            <Text style={styles.sectionHeadingText}>Course Syllabus & Lectures</Text>
           </View>
 
           {videos.length === 0 ? (
             <View style={styles.emptyVideos}>
               <Ionicons name="film-outline" size={40} color={colors.textMuted} />
               <Text style={styles.emptyVideosText}>
-                لم يتم إضافة محاضرات لهذا الكورس بعد. سيتم إضافتها قريباً.
+                No lectures added to this course yet. Check back soon.
               </Text>
             </View>
           ) : (
@@ -187,10 +187,10 @@ export default function CourseDetailsScreen({ route, navigation }) {
 
                 <View style={styles.videoDetailsWrap}>
                   <View style={styles.videoItemTopRow}>
-                    <Text style={styles.lectureNumberText}>المحاضرة {index + 1}</Text>
+                    <Text style={styles.lectureNumberText}>Lecture {index + 1}</Text>
                     {Boolean(v.is_free_preview) && (
                       <View style={styles.freePreviewBadge}>
-                        <Text style={styles.freePreviewText}>معاينة مجانية</Text>
+                        <Text style={styles.freePreviewText}>Free Preview</Text>
                       </View>
                     )}
                   </View>
@@ -218,7 +218,7 @@ export default function CourseDetailsScreen({ route, navigation }) {
       <OtpVerificationModal
         visible={showOtpModal}
         onClose={() => setShowOtpModal(false)}
-        onVerified={() => setShowOtpModal(false)}
+        onSuccess={() => setShowOtpModal(false)}
       />
     </View>
   );
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.surfaceBorder,
   },
   badgeRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     marginBottom: 10,
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   countBadge: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     backgroundColor: 'rgba(56, 189, 248, 0.08)',
@@ -306,17 +306,17 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   courseDescription: {
     fontSize: 13,
     color: colors.textSecondary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginTop: 8,
     lineHeight: 20,
   },
   securityNoteRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     backgroundColor: 'rgba(16, 185, 129, 0.1)',
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   sectionHeadingRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     paddingHorizontal: 20,
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   videoItem: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
     marginHorizontal: 16,
@@ -375,10 +375,9 @@ const styles = StyleSheet.create({
   },
   videoDetailsWrap: {
     flex: 1,
-    alignItems: 'flex-end',
   },
   videoItemTopRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
@@ -402,18 +401,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginTop: 2,
   },
   videoItemSub: {
     fontSize: 11,
     color: colors.textSecondary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginTop: 2,
     lineHeight: 16,
   },
   videoItemMetaRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     marginTop: 6,

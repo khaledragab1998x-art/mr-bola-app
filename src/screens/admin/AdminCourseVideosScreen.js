@@ -68,7 +68,7 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
 
             if (res.data.status === 'ready') {
               clearInterval(interval);
-              Alert.alert('اكتمل بنجاح! 🎉', 'تم ضغط وتجهيز فيديو الكورس بصيغة البث الآمن (HLS)!');
+              Alert.alert('Complete! 🎉', 'Course video successfully compressed into secure HLS stream!');
               loadCourseVideos();
             }
           }
@@ -104,17 +104,17 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
         setSelectedVideoFile(result.assets[0]);
       }
     } catch (e) {
-      Alert.alert('خطأ', 'فشل اختيار ملف الفيديو');
+      Alert.alert('Error', 'Failed to pick video file');
     }
   }
 
   async function handleStartUpload() {
     if (!videoTitle.trim()) {
-      Alert.alert('تنبيه', 'يرجى إدخال عنوان الفيديو');
+      Alert.alert('Notice', 'Please enter a video title');
       return;
     }
     if (!selectedVideoFile) {
-      Alert.alert('تنبيه', 'يرجى اختيار ملف الفيديو من الهاتف');
+      Alert.alert('Notice', 'Please select a video file from your device');
       return;
     }
 
@@ -143,22 +143,21 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
         setProcessingVideoId(res.videoId);
         setProcessingStatus('processing');
         setUploadModalVisible(false);
-        // Reset form
         setVideoTitle('');
         setVideoDescription('');
         setIsFreePreview(false);
         setSelectedVideoFile(null);
         Alert.alert(
-          'تم الرفع بنجاح! 🚀',
-          'جاري الآن معالجة وضغط الفيديو في السيرفر وتحويله للبث الآمن. يمكنك متابعة شريط التقدم في الأعلى.'
+          'Upload Complete! 🚀',
+          'Server is now encoding the video with FFmpeg into HLS chunks. You can follow progress in the bar above.'
         );
         loadCourseVideos();
       } else {
-        Alert.alert('خطأ', res.message || 'فشل رفع الفيديو');
+        Alert.alert('Error', res.message || 'Failed to upload video');
         setProcessingStatus(null);
       }
     } catch (e) {
-      Alert.alert('خطأ', 'تعذر رفع الفيديو إلى السيرفر');
+      Alert.alert('Error', 'Could not upload video to server');
       setProcessingStatus(null);
     } finally {
       setUploading(false);
@@ -175,7 +174,7 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
 
   async function handleSaveEdit() {
     if (!editTitle.trim()) {
-      Alert.alert('تنبيه', 'عنوان الفيديو مطلوب');
+      Alert.alert('Notice', 'Video title is required');
       return;
     }
 
@@ -189,14 +188,14 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
       });
 
       if (res.success) {
-        Alert.alert('تم بنجاح', 'تم تحديث بيانات الفيديو');
+        Alert.alert('Success', 'Video updated successfully');
         setEditModalVisible(false);
         loadCourseVideos();
       } else {
-        Alert.alert('خطأ', res.message || 'فشل التحديث');
+        Alert.alert('Error', res.message || 'Update failed');
       }
     } catch (e) {
-      Alert.alert('خطأ', 'تعذر حفظ التعديلات');
+      Alert.alert('Error', 'Could not save changes');
     } finally {
       setSavingEdit(false);
     }
@@ -204,24 +203,24 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
 
   function handleDeleteVideo(video) {
     Alert.alert(
-      'تأكيد الحذف',
-      `هل أنت متأكد من رغبتك في حذف فيديو "${video.title}" من هذا الكورس؟`,
+      'Delete Video',
+      `Are you sure you want to remove "${video.title}" from this course?`,
       [
-        { text: 'إلغاء', style: 'cancel' },
+        { text: 'Cancel', style: 'cancel' },
         {
-          text: 'نعم، احذف',
+          text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
               const res = await deleteCourseVideoApi(video.id);
               if (res.success) {
-                Alert.alert('تم الحذف', 'تم حذف الفيديو بنجاح');
+                Alert.alert('Deleted', 'Video deleted successfully');
                 setVideos((prev) => prev.filter((v) => v.id !== video.id));
               } else {
-                Alert.alert('خطأ', res.message || 'فشل حذف الفيديو');
+                Alert.alert('Error', res.message || 'Failed to delete video');
               }
             } catch (e) {
-              Alert.alert('خطأ', 'فشل حذف الفيديو');
+              Alert.alert('Error', 'Failed to delete video');
             }
           },
         },
@@ -230,10 +229,10 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
   }
 
   function formatDuration(seconds) {
-    if (!seconds) return 'غير محدد';
+    if (!seconds) return 'N/A';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs} دقيقة`;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs} min`;
   }
 
   return (
@@ -245,21 +244,21 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
           onPress={() => navigation.goBack()}
           activeOpacity={0.8}
         >
-          <Ionicons name="arrow-forward" size={24} color={colors.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <View style={{ alignItems: 'flex-end', flex: 1, marginHorizontal: 10 }}>
+        <View style={{ flex: 1, marginHorizontal: 10 }}>
           <Text style={styles.headerTitle} numberOfLines={1}>
             {courseTitle}
           </Text>
-          <Text style={styles.headerSubtitle}>إدارة فيديوهات الكورس الحصرية</Text>
+          <Text style={styles.headerSubtitle}>Course-Exclusive Lectures</Text>
         </View>
         <TouchableOpacity
           style={styles.addBtn}
           onPress={() => setUploadModalVisible(true)}
           activeOpacity={0.8}
         >
-          <Ionicons name="cloud-upload" size={18} color="#fff" />
-          <Text style={styles.addBtnText}>رفع فيديو</Text>
+          <Ionicons name="cloud-upload" size={16} color="#fff" />
+          <Text style={styles.addBtnText}>Upload Video</Text>
         </TouchableOpacity>
       </View>
 
@@ -270,8 +269,8 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
             <ActivityIndicator size="small" color={colors.accent} />
             <Text style={styles.processingTitle}>
               {processingStatus === 'uploading'
-                ? `جاري رفع الفيديو إلى السيرفر (${processingProgress}%)`
-                : `جاري ضغط ومعالجة الفيديو HLS (${processingProgress}%)`}
+                ? `Uploading video to server (${processingProgress}%)`
+                : `Compressing & creating HLS stream (${processingProgress}%)`}
             </Text>
           </View>
           <View style={styles.progressBarTrack}>
@@ -285,9 +284,9 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
       ) : videos.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="film-outline" size={56} color={colors.textMuted} />
-          <Text style={styles.emptyTitle}>لا توجد فيديوهات في هذا الكورس بعد</Text>
+          <Text style={styles.emptyTitle}>No videos in this course yet</Text>
           <Text style={styles.emptySub}>
-            الفيديوهات التي ترفعها هنا ستكون خاصة ومتاحة حصرياً داخل هذا الكورس فقط
+            Lectures uploaded here are exclusive to this course and separate from general lessons
           </Text>
           <TouchableOpacity
             style={styles.emptyUploadBtn}
@@ -295,7 +294,7 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
             activeOpacity={0.8}
           >
             <Ionicons name="cloud-upload-outline" size={20} color="#fff" />
-            <Text style={styles.emptyUploadText}>رفع أول فيديو للكورس 🎬</Text>
+            <Text style={styles.emptyUploadText}>Upload First Video 🎬</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -315,6 +314,10 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
           {videos.map((video, idx) => (
             <View key={video.id} style={styles.videoCard}>
               <View style={styles.cardHeaderRow}>
+                <View style={styles.lectureBadge}>
+                  <Text style={styles.lectureBadgeText}>Lecture {idx + 1}</Text>
+                </View>
+
                 <View style={styles.badgeGroup}>
                   <View
                     style={[
@@ -328,22 +331,18 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
                   >
                     <Text style={styles.statusText}>
                       {video.status === 'ready'
-                        ? 'جاهز للبث'
+                        ? 'Ready'
                         : video.status === 'processing'
-                        ? `قيد الضغط (${video.processing_progress}%)`
-                        : 'فشل'}
+                        ? `Encoding (${video.processing_progress}%)`
+                        : 'Failed'}
                     </Text>
                   </View>
 
                   {Boolean(video.is_free_preview) && (
                     <View style={styles.freeBadge}>
-                      <Text style={styles.freeBadgeText}>معاينة مجانية</Text>
+                      <Text style={styles.freeBadgeText}>Free Preview</Text>
                     </View>
                   )}
-                </View>
-
-                <View style={styles.lectureBadge}>
-                  <Text style={styles.lectureBadgeText}>المحاضرة {idx + 1}</Text>
                 </View>
               </View>
 
@@ -359,7 +358,7 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
                 </View>
                 <View style={styles.metaItem}>
                   <Ionicons name="lock-closed-outline" size={14} color={colors.accent} />
-                  <Text style={styles.metaText}>حماية ببث HLS + علامة مائية</Text>
+                  <Text style={styles.metaText}>HLS Streaming + Watermark</Text>
                 </View>
               </View>
 
@@ -372,8 +371,8 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
                   onPress={() => openEditModal(video)}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="pencil" size={16} color={colors.primaryLight} />
-                  <Text style={styles.editBtnText}>تعديل البيانات</Text>
+                  <Ionicons name="pencil" size={15} color={colors.primaryLight} />
+                  <Text style={styles.editBtnText}>Edit</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -381,8 +380,8 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
                   onPress={() => handleDeleteVideo(video)}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="trash-outline" size={16} color={colors.error} />
-                  <Text style={styles.deleteBtnText}>حذف الفيديو</Text>
+                  <Ionicons name="trash-outline" size={15} color={colors.danger} />
+                  <Text style={styles.deleteBtnText}>Delete</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -400,59 +399,59 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>رفع فيديو جديد لهذا الكورس فقط</Text>
+              <Text style={styles.modalTitle}>Upload Video to Course</Text>
               <TouchableOpacity onPress={() => setUploadModalVisible(false)}>
                 <Ionicons name="close" size={24} color={colors.textPrimary} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalBody}>
-              <Text style={styles.inputLabel}>عنوان المحاضرة / الفيديو *</Text>
+              <Text style={styles.inputLabel}>Lecture / Video Title *</Text>
               <TextInput
                 style={styles.modalInput}
                 value={videoTitle}
                 onChangeText={setVideoTitle}
-                placeholder="مثال: المحاضرة الأولى: مقدمة وحل أفكار المتفوقين"
+                placeholder="e.g. Lecture 1: Conceptual Intro & Advanced Problems"
                 placeholderTextColor={colors.textMuted}
-                textAlign="right"
+                textAlign="left"
               />
 
-              <Text style={styles.inputLabel}>الوصف</Text>
+              <Text style={styles.inputLabel}>Description</Text>
               <TextInput
                 style={[styles.modalInput, styles.textArea]}
                 value={videoDescription}
                 onChangeText={setVideoDescription}
-                placeholder="وصف تفصيلي للمحاضرة..."
+                placeholder="Detailed summary of topics covered in this lecture..."
                 placeholderTextColor={colors.textMuted}
                 multiline
                 numberOfLines={3}
-                textAlign="right"
+                textAlign="left"
               />
 
               {/* Video File Picker */}
-              <Text style={styles.inputLabel}>ملف الفيديو من الهاتف *</Text>
+              <Text style={styles.inputLabel}>Video File *</Text>
               <TouchableOpacity style={styles.filePickerBtn} onPress={pickVideo} activeOpacity={0.8}>
                 <Ionicons name="videocam-outline" size={24} color={colors.primaryLight} />
-                <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.filePickerTitle}>
-                    {selectedVideoFile ? selectedVideoFile.name : 'اضغط لاختيار ملف الفيديو (MP4, MKV)'}
+                    {selectedVideoFile ? selectedVideoFile.name : 'Tap to select video file (MP4, MKV)'}
                   </Text>
                   <Text style={styles.filePickerSub}>
                     {selectedVideoFile
-                      ? `الحجم: ${(selectedVideoFile.size / (1024 * 1024)).toFixed(1)} MB`
-                      : 'سيتم ضغطه وتحويله للبث التلقائي فائق السرعة'}
+                      ? `Size: ${(selectedVideoFile.size / (1024 * 1024)).toFixed(1)} MB`
+                      : 'Will be compressed and encoded to fast HLS streaming'}
                   </Text>
                 </View>
               </TouchableOpacity>
 
               <View style={styles.modalToggleRow}>
+                <Text style={styles.modalToggleLabel}>Free Preview (Unlocked for all students)</Text>
                 <Switch
                   value={isFreePreview}
                   onValueChange={setIsFreePreview}
                   trackColor={{ false: colors.surfaceBorder, true: colors.accent }}
                   thumbColor={isFreePreview ? '#fff' : '#94A3B8'}
                 />
-                <Text style={styles.modalToggleLabel}>معاينة مجانية (فيديو تجريبي مفتوح)</Text>
               </View>
 
               <TouchableOpacity
@@ -462,12 +461,12 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
                 activeOpacity={0.8}
               >
                 {uploading ? (
-                  <View style={{ flexDirection: 'row-reverse', alignItems: 'center', gap: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <ActivityIndicator color="#fff" />
-                    <Text style={styles.uploadSubmitText}>جاري رفع الفيديو ({processingProgress}%)...</Text>
+                    <Text style={styles.uploadSubmitText}>Uploading Video ({processingProgress}%)...</Text>
                   </View>
                 ) : (
-                  <Text style={styles.uploadSubmitText}>بدء الرفع والضغط التلقائي 🚀</Text>
+                  <Text style={styles.uploadSubmitText}>Start Upload & Encoding 🚀</Text>
                 )}
               </TouchableOpacity>
             </ScrollView>
@@ -485,39 +484,39 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>تعديل بيانات الفيديو</Text>
+              <Text style={styles.modalTitle}>Edit Video Details</Text>
               <TouchableOpacity onPress={() => setEditModalVisible(false)}>
                 <Ionicons name="close" size={24} color={colors.textPrimary} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalBody}>
-              <Text style={styles.inputLabel}>عنوان الفيديو *</Text>
+              <Text style={styles.inputLabel}>Video Title *</Text>
               <TextInput
                 style={styles.modalInput}
                 value={editTitle}
                 onChangeText={setEditTitle}
-                textAlign="right"
+                textAlign="left"
               />
 
-              <Text style={styles.inputLabel}>الوصف</Text>
+              <Text style={styles.inputLabel}>Description</Text>
               <TextInput
                 style={[styles.modalInput, styles.textArea]}
                 value={editDescription}
                 onChangeText={setEditDescription}
                 multiline
                 numberOfLines={3}
-                textAlign="right"
+                textAlign="left"
               />
 
               <View style={styles.modalToggleRow}>
+                <Text style={styles.modalToggleLabel}>Free Preview for this video</Text>
                 <Switch
                   value={editIsFree}
                   onValueChange={setEditIsFree}
                   trackColor={{ false: colors.surfaceBorder, true: colors.accent }}
                   thumbColor={editIsFree ? '#fff' : '#94A3B8'}
                 />
-                <Text style={styles.modalToggleLabel}>معاينة مجانية لهذا الفيديو</Text>
               </View>
 
               <TouchableOpacity
@@ -529,7 +528,7 @@ export default function AdminCourseVideosScreen({ route, navigation }) {
                 {savingEdit ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={styles.uploadSubmitText}>حفظ التعديلات</Text>
+                  <Text style={styles.uploadSubmitText}>Save Changes</Text>
                 )}
               </TouchableOpacity>
             </ScrollView>
@@ -546,7 +545,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
@@ -570,13 +569,13 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   addBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primary,
     paddingHorizontal: 10,
     paddingVertical: 7,
     borderRadius: 8,
-    gap: 4,
+    gap: 6,
   },
   addBtnText: {
     color: '#fff',
@@ -593,7 +592,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(217, 119, 6, 0.3)',
   },
   processingHeader: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
@@ -639,7 +638,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   emptyUploadBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primary,
     paddingHorizontal: 18,
@@ -661,13 +660,24 @@ const styles = StyleSheet.create({
     borderColor: colors.surfaceBorder,
   },
   cardHeaderRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 8,
   },
+  lectureBadge: {
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  lectureBadgeText: {
+    fontSize: 11,
+    color: colors.primaryLight,
+    fontWeight: 'bold',
+  },
   badgeGroup: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
@@ -698,42 +708,31 @@ const styles = StyleSheet.create({
   },
   freeBadgeText: {
     fontSize: 10,
-    color: colors.accent,
+    color: colors.gold,
     fontWeight: '700',
-  },
-  lectureBadge: {
-    backgroundColor: 'rgba(56, 189, 248, 0.12)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  lectureBadgeText: {
-    fontSize: 11,
-    color: colors.primaryLight,
-    fontWeight: 'bold',
   },
   videoTitle: {
     fontSize: 15,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginTop: 4,
   },
   videoDescription: {
     fontSize: 12,
     color: colors.textSecondary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginTop: 4,
     lineHeight: 18,
   },
   metaRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
     marginTop: 10,
   },
   metaItem: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
@@ -747,12 +746,12 @@ const styles = StyleSheet.create({
     marginVertical: 12,
   },
   cardActionRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   editBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(56, 189, 248, 0.1)',
     paddingHorizontal: 12,
@@ -768,7 +767,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   deleteBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
     paddingHorizontal: 12,
@@ -780,7 +779,7 @@ const styles = StyleSheet.create({
   },
   deleteBtnText: {
     fontSize: 12,
-    color: colors.error,
+    color: colors.danger,
     fontWeight: 'bold',
   },
 
@@ -798,7 +797,7 @@ const styles = StyleSheet.create({
     maxHeight: '85%',
   },
   modalHeader: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingBottom: 14,
@@ -817,7 +816,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: colors.textSecondary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 6,
     marginTop: 8,
   },
@@ -835,7 +834,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   filePickerBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(56, 189, 248, 0.08)',
     borderRadius: 12,
@@ -850,16 +849,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   filePickerSub: {
     fontSize: 11,
     color: colors.textMuted,
-    textAlign: 'right',
+    textAlign: 'left',
     marginTop: 2,
   },
   modalToggleRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 14,

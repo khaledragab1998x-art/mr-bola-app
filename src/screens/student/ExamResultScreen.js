@@ -33,24 +33,24 @@ export default function ExamResultScreen({ route, navigation }) {
 
         <Text style={styles.examTitle}>{title}</Text>
         <Text style={styles.resultHeading}>
-          {isPassed ? 'أحسنت يا بطل! تم اجتياز الامتحان بنجاح 🎉' : 'فرصة للمراجعة والتحسين! 💪'}
+          {isPassed ? 'Outstanding Job! Exam passed 🎉' : 'Keep practicing! Review & Try Again 💪'}
         </Text>
 
         {/* Score Board */}
         <View style={styles.scoreBox}>
           <Text style={styles.percentageText}>{finalPercentage}%</Text>
           <Text style={styles.scoreSubText}>
-            الدرجة المحققة: {score} من أصل {totalMarks}
+            Achieved Score: {score} out of {totalMarks}
           </Text>
         </View>
 
         {/* Teacher Note */}
         <View style={styles.teacherFeedback}>
-          <Text style={styles.feedbackTitle}>رسالة مستر بولا لك:</Text>
+          <Text style={styles.feedbackTitle}>Message from Mr.Poula:</Text>
           <Text style={styles.feedbackBody}>
             {isPassed
-              ? 'مستوى ممتاز وتركيز رائع في استنتاج القوانين. واصل التدريب على المسائل الصعبة للوصول للدرجة النهائية في الفيزياء.'
-              : 'الفيزياء تحتاج تدريباً مستمراً وصبراً. راجع الحصة الخاصة بهذا الباب وركّز على القوانين والملاحظات ثم أعد المحاولة.'}
+              ? 'Great focus and excellent problem-solving skills! Keep up the momentum to secure full marks in Physics.'
+              : 'Physics requires patience and systematic practice. Review the chapter lecture and summary notes, then attempt the exam again.'}
           </Text>
         </View>
 
@@ -60,8 +60,8 @@ export default function ExamResultScreen({ route, navigation }) {
           onPress={handleGoHome}
           activeOpacity={0.8}
         >
-          <Text style={styles.doneBtnText}>العودة للرئيسية</Text>
           <Ionicons name="home-outline" size={18} color="#FFF" />
+          <Text style={styles.doneBtnText}>Return to Home</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -154,21 +154,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: 'bold',
     color: colors.primaryLight,
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 6,
   },
   feedbackBody: {
     fontSize: 12,
     color: colors.textSecondary,
     lineHeight: 20,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   doneBtn: {
     width: '100%',
     height: 50,
     backgroundColor: colors.primary,
     borderRadius: 14,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,

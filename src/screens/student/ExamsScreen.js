@@ -44,11 +44,11 @@ export default function ExamsScreen({ navigation }) {
   function handleExamClick(exam) {
     if (isAccessBlockedByVerification) {
       Alert.alert(
-        'تأكيد الإيميل مطلوب',
-        'عذراً، يجب تأكيد بريدك الإلكتروني أولاً للدخول إلى الامتحانات.',
+        'Email Verification Required',
+        'Please verify your email address first before taking exams.',
         [
-          { text: 'تأكيد الآن', onPress: () => setShowOtpModal(true) },
-          { text: 'إلغاء', style: 'cancel' }
+          { text: 'Verify Now', onPress: () => setShowOtpModal(true) },
+          { text: 'Cancel', style: 'cancel' },
         ]
       );
       return;
@@ -65,14 +65,14 @@ export default function ExamsScreen({ navigation }) {
     }
 
     Alert.alert(
-      'بدء الامتحان',
-      `أنت على وشك بدء امتحان: "${exam.title}"\n• المدة: ${exam.duration_minutes} دقيقة\n• نظام مراقبة الغش مفعل: يمنع تصغير التطبيق أثناء الامتحان.`,
+      'Start Exam',
+      `You are about to start: "${exam.title}"\n• Duration: ${exam.duration_minutes} minutes\n• Anti-cheat enabled: Do not minimize or switch apps during the exam.`,
       [
         {
-          text: 'ابدأ الآن',
+          text: 'Start Now',
           onPress: () => navigation.navigate('ExamTaking', { examId: exam.id, title: exam.title }),
         },
-        { text: 'إلغاء', style: 'cancel' }
+        { text: 'Cancel', style: 'cancel' },
       ]
     );
   }
@@ -80,8 +80,10 @@ export default function ExamsScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>الامتحانات والتقييمات الدورية</Text>
-        <Text style={styles.headerSubtitle}>اختبر مستواك في الفيزياء وتدرب على أسئلة الامتحانات الرسمية</Text>
+        <Text style={styles.headerTitle}>Physics Exams & Quizzes</Text>
+        <Text style={styles.headerSubtitle}>
+          Test your conceptual understanding and practice official exam questions
+        </Text>
       </View>
 
       {loading ? (
@@ -89,12 +91,21 @@ export default function ExamsScreen({ navigation }) {
       ) : exams.length === 0 ? (
         <View style={styles.emptyBox}>
           <Ionicons name="document-text-outline" size={48} color={colors.textMuted} />
-          <Text style={styles.emptyText}>لا توجد امتحانات متاحة حالياً</Text>
+          <Text style={styles.emptyText}>No exams available at this time</Text>
         </View>
       ) : (
         <ScrollView
           contentContainerStyle={styles.scrollList}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadExams(); }} tintColor={colors.primaryLight} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => {
+                setRefreshing(true);
+                loadExams();
+              }}
+              tintColor={colors.primaryLight}
+            />
+          }
         >
           {exams.map((exam) => (
             <TouchableOpacity
@@ -104,18 +115,26 @@ export default function ExamsScreen({ navigation }) {
               activeOpacity={0.8}
             >
               <View style={styles.examTop}>
-                <View style={[
-                  styles.statusBadge,
-                  exam.submission_status === 'completed' ? styles.statusCompleted : styles.statusPending
-                ]}>
-                  <Text style={[
-                    styles.statusBadgeText,
-                    exam.submission_status === 'completed' ? styles.statusCompletedText : styles.statusPendingText
-                  ]}>
-                    {exam.submission_status === 'completed' ? 'تم الحل بنجاح' : 'جاهز للبدء'}
+                <Text style={styles.examTitle}>{exam.title}</Text>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    exam.submission_status === 'completed'
+                      ? styles.statusCompleted
+                      : styles.statusPending,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.statusBadgeText,
+                      exam.submission_status === 'completed'
+                        ? styles.statusCompletedText
+                        : styles.statusPendingText,
+                    ]}
+                  >
+                    {exam.submission_status === 'completed' ? 'Completed' : 'Ready'}
                   </Text>
                 </View>
-                <Text style={styles.examTitle}>{exam.title}</Text>
               </View>
 
               {exam.chapter_title ? (
@@ -125,35 +144,37 @@ export default function ExamsScreen({ navigation }) {
               <View style={styles.examInfoGrid}>
                 <View style={styles.infoPill}>
                   <Ionicons name="time-outline" size={14} color={colors.warning} />
-                  <Text style={styles.infoText}>{exam.duration_minutes} دقيقة</Text>
+                  <Text style={styles.infoText}>{exam.duration_minutes} min</Text>
                 </View>
 
                 <View style={styles.infoPill}>
                   <Ionicons name="help-circle-outline" size={14} color={colors.primaryLight} />
-                  <Text style={styles.infoText}>{exam.questions_count || 'متعدد'} سؤال</Text>
+                  <Text style={styles.infoText}>{exam.questions_count || 'Multi'} questions</Text>
                 </View>
 
                 <View style={styles.infoPill}>
                   <Ionicons name="trophy-outline" size={14} color={colors.accent} />
-                  <Text style={styles.infoText}>{exam.total_marks} درجة</Text>
+                  <Text style={styles.infoText}>{exam.total_marks} pts</Text>
                 </View>
               </View>
 
               <View style={styles.examCardFooter}>
                 {exam.submission_status === 'completed' ? (
                   <View style={styles.scoreRow}>
-                    <Text style={styles.scoreLabel}>درجتك:</Text>
-                    <Text style={styles.scoreValue}>{exam.student_score} / {exam.total_marks}</Text>
+                    <Text style={styles.scoreLabel}>Score:</Text>
+                    <Text style={styles.scoreValue}>
+                      {exam.student_score} / {exam.total_marks}
+                    </Text>
                   </View>
                 ) : (
-                  <Text style={styles.notTakenText}>لم تخض الامتحان بعد</Text>
+                  <Text style={styles.notTakenText}>Not attempted yet</Text>
                 )}
 
                 <View style={styles.startBtn}>
                   <Text style={styles.startBtnText}>
-                    {exam.submission_status === 'completed' ? 'عرض النتيجة' : 'دخول الامتحان'}
+                    {exam.submission_status === 'completed' ? 'View Result' : 'Take Exam'}
                   </Text>
-                  <Ionicons name="arrow-back" size={14} color="#FFF" />
+                  <Ionicons name="arrow-forward" size={14} color="#FFF" />
                 </View>
               </View>
             </TouchableOpacity>
@@ -188,12 +209,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   headerSubtitle: {
     fontSize: 12,
     color: colors.textSecondary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginTop: 4,
   },
   scrollList: {
@@ -209,7 +230,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   examTop: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 12,
@@ -219,7 +240,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.textPrimary,
     flex: 1,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   statusBadge: {
     paddingHorizontal: 8,
@@ -246,15 +267,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textSecondary,
     marginTop: 4,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   examInfoGrid: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     gap: 12,
     marginTop: 14,
   },
   infoPill: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -267,7 +288,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   examCardFooter: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 16,
@@ -276,7 +297,7 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(255, 255, 255, 0.05)',
   },
   scoreRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
@@ -294,7 +315,7 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   startBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.primary,
     paddingHorizontal: 12,

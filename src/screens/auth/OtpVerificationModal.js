@@ -30,19 +30,19 @@ export default function OtpVerificationModal({ visible, onClose, onSuccess }) {
 
   async function handleVerify() {
     if (otp.trim().length < 6) {
-      Alert.alert('تنبيه', 'برجاء إدخال رمز التحقق المكون من 6 أرقام');
+      Alert.alert('Alert', 'Please enter the 6-digit verification code');
       return;
     }
 
     setLoading(true);
     try {
       const res = await verifyEmail(otp.trim());
-      Alert.alert('نجاح', res.message || 'تم تأكيد البريد الإلكتروني بنجاح!');
+      Alert.alert('Success', res.message || 'Email verified successfully!');
       setOtp('');
       if (onSuccess) onSuccess();
       onClose();
     } catch (error) {
-      Alert.alert('خطأ', error.message || 'رمز التحقق غير صحيح أو انتهت صلاحيته');
+      Alert.alert('Error', error.message || 'Invalid or expired verification code');
     } finally {
       setLoading(false);
     }
@@ -53,10 +53,10 @@ export default function OtpVerificationModal({ visible, onClose, onSuccess }) {
     setResending(true);
     try {
       await resendVerificationOtp();
-      Alert.alert('تم الإرسال', 'تم إرسال رمز تحقق جديد إلى بريدك الإلكتروني');
+      Alert.alert('Sent', 'A new verification code has been sent to your email');
       setTimer(60);
     } catch (error) {
-      Alert.alert('خطأ', error.message || 'فشل إعادة إرسال الرمز');
+      Alert.alert('Error', error.message || 'Failed to resend verification code');
     } finally {
       setResending(false);
     }
@@ -74,9 +74,9 @@ export default function OtpVerificationModal({ visible, onClose, onSuccess }) {
             <Ionicons name="mail-open-outline" size={36} color={colors.primaryLight} />
           </View>
 
-          <Text style={styles.title}>تأكيد البريد الإلكتروني</Text>
+          <Text style={styles.title}>Email Verification</Text>
           <Text style={styles.subtitle}>
-            أدخل رمز التحقق (OTP) المرسل إلى بريدك:
+            Enter the 6-digit OTP code sent to:
           </Text>
           <Text style={styles.emailText}>{user?.email}</Text>
 
@@ -99,7 +99,7 @@ export default function OtpVerificationModal({ visible, onClose, onSuccess }) {
             {loading ? (
               <ActivityIndicator color="#FFF" />
             ) : (
-              <Text style={styles.verifyBtnText}>تأكيد الحساب الآن</Text>
+              <Text style={styles.verifyBtnText}>Verify Account Now</Text>
             )}
           </TouchableOpacity>
 
@@ -117,7 +117,7 @@ export default function OtpVerificationModal({ visible, onClose, onSuccess }) {
                   timer > 0 ? styles.resendDisabled : styles.resendActive,
                 ]}
               >
-                {timer > 0 ? `إعادة الإرسال بعد (${timer}s)` : 'إعادة إرسال كود التحقق'}
+                {timer > 0 ? `Resend code in (${timer}s)` : 'Resend Code'}
               </Text>
             )}
           </TouchableOpacity>

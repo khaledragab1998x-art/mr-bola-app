@@ -24,12 +24,12 @@ export default function VerificationBanner({ onOpenVerifyModal }) {
         />
         <View style={styles.textWrap}>
           <Text style={styles.title}>
-            {isEnforced ? 'تأكيد البريد الإلكتروني إلزامي' : 'بريدك الإلكتروني غير مؤكد بعد'}
+            {isEnforced ? 'Email Verification Required' : 'Email Not Verified Yet'}
           </Text>
           <Text style={styles.subtitle}>
             {isEnforced
-              ? 'يجب إدخال رمز التحقق لتتمكن من فتح الفيديوهات والامتحانات'
-              : 'يمكنك تأكيد إيميلك في أي وقت لحماية حسابك'}
+              ? 'Please verify your email code to unlock full video and exam access'
+              : 'You can verify your email anytime to secure your physics account'}
           </Text>
         </View>
       </View>
@@ -39,8 +39,8 @@ export default function VerificationBanner({ onOpenVerifyModal }) {
         onPress={onOpenVerifyModal}
         activeOpacity={0.8}
       >
-        <Text style={styles.btnText}>تأكيد الآن</Text>
-        <Ionicons name="chevron-back" size={16} color="#FFF" />
+        <Text style={styles.btnText}>Verify Now</Text>
+        <Ionicons name="chevron-forward" size={16} color="#FFF" />
       </TouchableOpacity>
     </View>
   );
@@ -63,13 +63,13 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(239, 68, 68, 0.40)',
   },
   contentRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
   textWrap: {
     flex: 1,
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
   },
   title: {
     fontSize: 13,
@@ -80,11 +80,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.textSecondary,
     marginTop: 2,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   actionBtn: {
     marginTop: 10,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,

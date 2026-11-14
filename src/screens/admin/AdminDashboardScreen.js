@@ -51,14 +51,14 @@ export default function AdminDashboardScreen({ navigation }) {
         setStats((prev) => ({ ...prev, requireEmailVerification: newValue }));
         setRequireEmailVerification(newValue);
         Alert.alert(
-          'تم تحديث الإعدادات',
+          'Settings Updated',
           newValue
-            ? 'تم تفعيل إلزامية تأكيد البريد الإلكتروني. لن يتمكن الطلاب غير المؤكدين من فتح الفيديوهات أو دخول الامتحانات حتى يتم التأكيد.'
-            : 'تم إلغاء الإلزامية. يمكن للطلاب الدخول واستعراض المحتوى والامتحانات بحرية وتأكيد الإيميل لاحقاً.'
+            ? 'Mandatory email verification enabled. Unverified students will be blocked from viewing lessons and exams until verified.'
+            : 'Mandatory email verification disabled. Students can freely access content and verify their email at any time.'
         );
       }
     } catch (err) {
-      Alert.alert('خطأ', 'فشل تحديث إعدادات التحقق');
+      Alert.alert('Error', 'Failed to update verification setting');
     } finally {
       setToggling(false);
     }
@@ -68,31 +68,48 @@ export default function AdminDashboardScreen({ navigation }) {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.switchModeBtn}
-          onPress={() => navigation.navigate('StudentTabs')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.switchModeText}>معاينة كطالب</Text>
-          <Ionicons name="eye-outline" size={16} color={colors.primaryLight} />
-        </TouchableOpacity>
         <View style={styles.headerTitleWrap}>
-          <Text style={styles.headerTitle}>لوحة تحكم كينج الفيزياء</Text>
           <Image
             source={require('../../../assets/logo.png')}
             style={styles.adminHeaderLogo}
             resizeMode="contain"
           />
+          <Text style={styles.headerTitle}>Admin Dashboard</Text>
         </View>
+        <TouchableOpacity
+          style={styles.switchModeBtn}
+          onPress={() => navigation.navigate('StudentTabs')}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="eye-outline" size={16} color={colors.primaryLight} />
+          <Text style={styles.switchModeText}>Student View</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadStats(); }} tintColor={colors.primaryLight} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              loadStats();
+            }}
+            tintColor={colors.primaryLight}
+          />
+        }
       >
-        {/* Verification Requirement Toggle Card (KEY REQUIREMENT) */}
+        {/* Verification Requirement Toggle Card */}
         <View style={styles.settingToggleCard}>
           <View style={styles.toggleRow}>
+            <View style={styles.toggleTextWrap}>
+              <Text style={styles.toggleTitle}>Mandatory Student Email Verification</Text>
+              <Text style={styles.toggleSubtitle}>
+                {stats?.requireEmailVerification
+                  ? 'Enabled: Blocks unverified students from lectures and exams'
+                  : 'Disabled: Students can sign up and explore content immediately'}
+              </Text>
+            </View>
             <Switch
               value={stats?.requireEmailVerification || false}
               onValueChange={handleToggleVerification}
@@ -100,19 +117,11 @@ export default function AdminDashboardScreen({ navigation }) {
               thumbColor={stats?.requireEmailVerification ? colors.accent : '#94A3B8'}
               disabled={toggling}
             />
-            <View style={styles.toggleTextWrap}>
-              <Text style={styles.toggleTitle}>إلزام الطلاب بتأكيد البريد الإلكتروني</Text>
-              <Text style={styles.toggleSubtitle}>
-                {stats?.requireEmailVerification
-                  ? 'مفعّل: يمنع الطلاب غير المؤكدين من مشاهدة الدروس أو دخول الامتحانات'
-                  : 'معطّل: متاح التسجيل المباشر وتأكيد الإيميل لاحقاً في أي وقت'}
-              </Text>
-            </View>
           </View>
         </View>
 
         {/* Stats Grid */}
-        <Text style={styles.sectionHeading}>إحصائيات المنصة الحالية</Text>
+        <Text style={styles.sectionHeading}>Platform Overview</Text>
 
         {loading ? (
           <ActivityIndicator color={colors.primaryLight} style={{ marginVertical: 20 }} />
@@ -121,7 +130,7 @@ export default function AdminDashboardScreen({ navigation }) {
             <View style={styles.statBox}>
               <Ionicons name="people" size={24} color={colors.primaryLight} />
               <Text style={styles.statValue}>{stats?.totalStudents || 0}</Text>
-              <Text style={styles.statLabel}>إجمالي الطلاب</Text>
+              <Text style={styles.statLabel}>Total Students</Text>
             </View>
 
             <View style={styles.statBox}>
@@ -129,13 +138,13 @@ export default function AdminDashboardScreen({ navigation }) {
               <Text style={[styles.statValue, { color: colors.success }]}>
                 {stats?.verifiedStudents || 0}
               </Text>
-              <Text style={styles.statLabel}>إيميل مؤكد</Text>
+              <Text style={styles.statLabel}>Verified Emails</Text>
             </View>
 
             <View style={styles.statBox}>
               <Ionicons name="film" size={24} color={colors.accent} />
               <Text style={styles.statValue}>{stats?.totalLessons || 0}</Text>
-              <Text style={styles.statLabel}>الحصص المرفوعة</Text>
+              <Text style={styles.statLabel}>Lessons</Text>
             </View>
 
             <View style={styles.statBox}>
@@ -143,7 +152,7 @@ export default function AdminDashboardScreen({ navigation }) {
               <Text style={[styles.statValue, { color: colors.primaryLight }]}>
                 {stats?.totalCourses || 0}
               </Text>
-              <Text style={styles.statLabel}>الكورسات</Text>
+              <Text style={styles.statLabel}>Courses</Text>
             </View>
 
             <View style={styles.statBox}>
@@ -151,7 +160,7 @@ export default function AdminDashboardScreen({ navigation }) {
               <Text style={[styles.statValue, { color: colors.warning }]}>
                 {stats?.totalExams || 0}
               </Text>
-              <Text style={styles.statLabel}>الامتحانات</Text>
+              <Text style={styles.statLabel}>Exams</Text>
             </View>
 
             <View style={styles.statBox}>
@@ -159,13 +168,13 @@ export default function AdminDashboardScreen({ navigation }) {
               <Text style={[styles.statValue, { color: colors.success }]}>
                 {stats?.totalExamSubmissions || 0}
               </Text>
-              <Text style={styles.statLabel}>تسليمات الطلاب</Text>
+              <Text style={styles.statLabel}>Submissions</Text>
             </View>
           </View>
         )}
 
-        {/* Section 1: Control & Management */}
-        <Text style={[styles.sectionHeading, { marginTop: 22 }]}>التحكم وإدارة المحتوى</Text>
+        {/* Section 1: Content Management */}
+        <Text style={[styles.sectionHeading, { marginTop: 22 }]}>Content Management</Text>
 
         {/* Manage Lessons */}
         <TouchableOpacity
@@ -177,10 +186,10 @@ export default function AdminDashboardScreen({ navigation }) {
             <Ionicons name="film-outline" size={26} color={colors.primaryLight} />
           </View>
           <View style={styles.actionTextWrap}>
-            <Text style={styles.actionTitle}>إدارة الحصص المرفوعة سابقاً</Text>
-            <Text style={styles.actionSubtitle}>استعراض كافة الحصص، تعديل البيانات، تبديل النشر، أو الحذف</Text>
+            <Text style={styles.actionTitle}>Manage Lessons & Codes</Text>
+            <Text style={styles.actionSubtitle}>Manage lectures, generate unlock codes, and attach PDF sheets</Text>
           </View>
-          <Ionicons name="chevron-back" size={20} color={colors.textSecondary} />
+          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
 
         {/* Manage Exams */}
@@ -193,13 +202,13 @@ export default function AdminDashboardScreen({ navigation }) {
             <Ionicons name="document-text-outline" size={26} color={colors.warning} />
           </View>
           <View style={styles.actionTextWrap}>
-            <Text style={styles.actionTitle}>إدارة الامتحانات والأسئلة</Text>
-            <Text style={styles.actionSubtitle}>تعديل الامتحانات، حذف أو إضافة أسئلة جديدة لأي امتحان مضاف</Text>
+            <Text style={styles.actionTitle}>Manage Exams & Questions</Text>
+            <Text style={styles.actionSubtitle}>Edit exam parameters, manage MCQ & True/False questions</Text>
           </View>
-          <Ionicons name="chevron-back" size={20} color={colors.textSecondary} />
+          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
 
-        {/* Manage Courses (NEW) */}
+        {/* Manage Courses */}
         <TouchableOpacity
           style={[styles.actionCard, { borderColor: colors.primaryLight, borderWidth: 1.5 }]}
           onPress={() => navigation.navigate('AdminCourses')}
@@ -209,19 +218,19 @@ export default function AdminDashboardScreen({ navigation }) {
             <Ionicons name="school" size={26} color={colors.primaryLight} />
           </View>
           <View style={styles.actionTextWrap}>
-            <View style={{ flexDirection: 'row-reverse', alignItems: 'center', gap: 6 }}>
-              <Text style={styles.actionTitle}>قسم الكورسات والدورات</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={styles.actionTitle}>Courses & Programs</Text>
               <View style={styles.newBadge}>
-                <Text style={styles.newBadgeText}>جديد</Text>
+                <Text style={styles.newBadgeText}>New</Text>
               </View>
             </View>
-            <Text style={styles.actionSubtitle}>إنشاء كورسات جديدة ورفع فيديوهات حصرية مخصصة للكورس فقط</Text>
+            <Text style={styles.actionSubtitle}>Create courses and upload course-exclusive lectures</Text>
           </View>
-          <Ionicons name="chevron-back" size={20} color={colors.textSecondary} />
+          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
 
-        {/* Section 2: Create & Tools */}
-        <Text style={[styles.sectionHeading, { marginTop: 20 }]}>إضافة محتوى جديد وإدارة الطلاب</Text>
+        {/* Section 2: Creator Tools & Students */}
+        <Text style={[styles.sectionHeading, { marginTop: 20 }]}>Creation Tools & Students</Text>
 
         <TouchableOpacity
           style={styles.actionCard}
@@ -232,10 +241,10 @@ export default function AdminDashboardScreen({ navigation }) {
             <Ionicons name="cloud-upload-outline" size={26} color={colors.primaryLight} />
           </View>
           <View style={styles.actionTextWrap}>
-            <Text style={styles.actionTitle}>رفع وضغط حصة جديدة</Text>
-            <Text style={styles.actionSubtitle}>رفع درس من هاتفك وضغطه تلقائياً وتوليد البث الآمن (HLS)</Text>
+            <Text style={styles.actionTitle}>Upload & Encode Video</Text>
+            <Text style={styles.actionSubtitle}>Upload video from device with automatic HLS encryption</Text>
           </View>
-          <Ionicons name="chevron-back" size={20} color={colors.textSecondary} />
+          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -247,10 +256,10 @@ export default function AdminDashboardScreen({ navigation }) {
             <Ionicons name="create-outline" size={26} color={colors.warning} />
           </View>
           <View style={styles.actionTextWrap}>
-            <Text style={styles.actionTitle}>معالج إنشاء امتحان جديد</Text>
-            <Text style={styles.actionSubtitle}>إنشاء امتحان فوري وإضافة بنك أسئلة باختيارات متعددة</Text>
+            <Text style={styles.actionTitle}>Exam Builder Wizard</Text>
+            <Text style={styles.actionSubtitle}>Create a new exam and build question bank with MCQ or True/False</Text>
           </View>
-          <Ionicons name="chevron-back" size={20} color={colors.textSecondary} />
+          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -262,10 +271,10 @@ export default function AdminDashboardScreen({ navigation }) {
             <Ionicons name="person-circle-outline" size={26} color={colors.success} />
           </View>
           <View style={styles.actionTextWrap}>
-            <Text style={styles.actionTitle}>إدارة الطلاب وفك ربط الأجهزة</Text>
-            <Text style={styles.actionSubtitle}>البحث في بيانات الطلاب وإعادة تعيين الهاتف المقفل لطالب</Text>
+            <Text style={styles.actionTitle}>Students & Device Management</Text>
+            <Text style={styles.actionSubtitle}>Search students and reset device lock bindings</Text>
           </View>
-          <Ionicons name="chevron-back" size={20} color={colors.textSecondary} />
+          <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -278,7 +287,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
@@ -289,12 +298,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   headerTitleWrap: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   adminHeaderLogo: {
-    width: 36,
+    width: 34,
     height: 30,
   },
   headerTitle: {
@@ -303,7 +312,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   switchModeBtn: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(56, 189, 248, 0.12)',
     paddingHorizontal: 10,
@@ -331,25 +340,24 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   toggleRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
   },
   toggleTextWrap: {
     flex: 1,
-    alignItems: 'flex-end',
   },
   toggleTitle: {
     fontSize: 14,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   toggleSubtitle: {
     fontSize: 11,
     color: colors.textSecondary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginTop: 4,
     lineHeight: 16,
   },
@@ -357,11 +365,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 12,
   },
   statsGrid: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
   },
@@ -386,7 +394,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   actionCard: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
     padding: 16,
@@ -405,19 +413,18 @@ const styles = StyleSheet.create({
   },
   actionTextWrap: {
     flex: 1,
-    alignItems: 'flex-end',
   },
   actionTitle: {
     fontSize: 14,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   actionSubtitle: {
     fontSize: 11,
     color: colors.textSecondary,
     marginTop: 2,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   newBadge: {
     backgroundColor: colors.primary,

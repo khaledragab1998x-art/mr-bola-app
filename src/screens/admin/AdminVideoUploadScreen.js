@@ -41,7 +41,7 @@ export default function AdminVideoUploadScreen({ navigation }) {
 
             if (res.data.status === 'ready') {
               clearInterval(interval);
-              Alert.alert('اكتمل بنجاح! 🎉', 'تم ضغط الفيديو وتحويله لصيغة البث الآمن (HLS) بنجاح!');
+              Alert.alert('Complete! 🎉', 'Video successfully compressed and converted to secure HLS stream!');
             }
           }
         } catch (e) {}
@@ -61,17 +61,17 @@ export default function AdminVideoUploadScreen({ navigation }) {
         setVideoFile(result.assets[0]);
       }
     } catch (e) {
-      Alert.alert('خطأ', 'فشل اختيار ملف الفيديو');
+      Alert.alert('Error', 'Failed to pick video file');
     }
   }
 
   async function handleUpload() {
     if (!title.trim()) {
-      Alert.alert('تنبيه', 'برجاء إدخال عنوان الحصة');
+      Alert.alert('Notice', 'Please enter a lesson title');
       return;
     }
     if (!videoFile) {
-      Alert.alert('تنبيه', 'برجاء اختيار ملف الفيديو من الهاتف');
+      Alert.alert('Notice', 'Please select a video file from your device');
       return;
     }
 
@@ -100,12 +100,12 @@ export default function AdminVideoUploadScreen({ navigation }) {
         setProcessingLessonId(res.lessonId);
         setProcessingStatus('processing');
         Alert.alert(
-          'تم الرفع بنجاح! 🚀',
-          'بدأ سيرفر Linux في ضغط الفيديو بأداة FFmpeg وتوليد بث HLS الآمن. يمكنك متابعة النسبة بالأسفل.'
+          'Upload Complete! 🚀',
+          'Server has started compressing the video with FFmpeg and generating secure HLS chunks. You can follow progress below.'
         );
       }
     } catch (error) {
-      Alert.alert('فشل الرفع', error.message || 'حدث خطأ أثناء رفع الفيديو للسيرفر');
+      Alert.alert('Upload Failed', error.message || 'Error occurred while uploading video');
       setProcessingStatus(null);
     } finally {
       setUploading(false);
@@ -116,9 +116,9 @@ export default function AdminVideoUploadScreen({ navigation }) {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-forward" size={24} color={colors.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>رفع وضغط فيديو الحصة</Text>
+        <Text style={styles.headerTitle}>Upload & Encode Video</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
@@ -126,16 +126,16 @@ export default function AdminVideoUploadScreen({ navigation }) {
         {processingStatus && (
           <View style={styles.progressCard}>
             <View style={styles.progressHeader}>
-              <Text style={styles.progressPercent}>{processingProgress}%</Text>
               <Text style={styles.progressStatusText}>
                 {processingStatus === 'uploading'
-                  ? 'جاري نقل الملف إلى السيرفر...'
+                  ? 'Transferring file to server...'
                   : processingStatus === 'processing'
-                  ? 'جاري ضغط الفيديو بـ FFmpeg وتقسيم HLS...'
+                  ? 'Compressing with FFmpeg & generating HLS...'
                   : processingStatus === 'ready'
-                  ? '✅ تم الضغط والبث جاهز للطالب!'
-                  : 'فشلت المعالجة'}
+                  ? '✅ Encoding complete! Stream is ready.'
+                  : 'Processing failed'}
               </Text>
+              <Text style={styles.progressPercent}>{processingProgress}%</Text>
             </View>
 
             <View style={styles.progressBar}>
@@ -146,30 +146,30 @@ export default function AdminVideoUploadScreen({ navigation }) {
 
         {/* Form Card */}
         <View style={styles.card}>
-          <Text style={styles.label}>عنوان الحصة / الدرس</Text>
+          <Text style={styles.label}>Lesson Title *</Text>
           <TextInput
             style={styles.input}
-            placeholder="مثال: محاضرة 1 - شدة التيار وفرق الجهد"
+            placeholder="e.g. Lecture 1 - Current & Potential Difference"
             placeholderTextColor={colors.textMuted}
             value={title}
             onChangeText={setTitle}
-            textAlign="right"
+            textAlign="left"
           />
 
-          <Text style={[styles.label, { marginTop: 14 }]}>وصف الحصة والنقاط المشروحة</Text>
+          <Text style={[styles.label, { marginTop: 14 }]}>Description & Notes</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
-            placeholder="اكتب ملخص القوانين أو الملاحظات..."
+            placeholder="Key concepts, homework notes, or formula summary..."
             placeholderTextColor={colors.textMuted}
             value={description}
             onChangeText={setDescription}
             multiline
             numberOfLines={4}
-            textAlign="right"
+            textAlign="left"
           />
 
           {/* Video Picker */}
-          <Text style={[styles.label, { marginTop: 14 }]}>ملف الفيديو</Text>
+          <Text style={[styles.label, { marginTop: 14 }]}>Video File *</Text>
           <TouchableOpacity style={styles.filePickerBox} onPress={pickVideo} activeOpacity={0.8}>
             <Ionicons
               name={videoFile ? 'videocam' : 'cloud-upload-outline'}
@@ -177,24 +177,27 @@ export default function AdminVideoUploadScreen({ navigation }) {
               color={videoFile ? colors.primaryLight : colors.textSecondary}
             />
             <Text style={styles.filePickerText}>
-              {videoFile ? videoFile.name : 'اضغط لاختيار فيديو من جهازك (MP4 / MKV)'}
+              {videoFile ? videoFile.name : 'Tap to select video from device (MP4 / MKV)'}
             </Text>
             {videoFile && (
               <Text style={styles.fileSizeText}>
-                الحجم: {Math.round((videoFile.size || 0) / (1024 * 1024))} ميجابايت
+                Size: {Math.round((videoFile.size || 0) / (1024 * 1024))} MB
               </Text>
             )}
           </TouchableOpacity>
 
           {/* Free Preview Switch */}
           <View style={styles.switchRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.switchTitle}>Free Preview</Text>
+              <Text style={styles.switchSub}>Allow all students to watch this lesson without an unlock code</Text>
+            </View>
             <Switch
               value={isFree}
               onValueChange={setIsFree}
               trackColor={{ false: colors.surfaceBorder, true: colors.primary }}
               thumbColor={isFree ? colors.accent : '#94A3B8'}
             />
-            <Text style={styles.switchLabel}>إتاحة هذه الحصة كمعاينة مجانية لجميع الطلاب</Text>
           </View>
 
           {/* Submit Button */}
@@ -208,8 +211,8 @@ export default function AdminVideoUploadScreen({ navigation }) {
               <ActivityIndicator color="#FFF" />
             ) : (
               <>
-                <Text style={styles.uploadBtnText}>بدء رفع وضغط الحصة</Text>
                 <Ionicons name="cloud-upload" size={20} color="#FFF" />
+                <Text style={styles.uploadBtnText}>Upload & Start Encoding</Text>
               </>
             )}
           </TouchableOpacity>
@@ -225,7 +228,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: 50,
@@ -256,7 +259,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   progressHeader: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
@@ -265,11 +268,13 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontSize: 12,
     fontWeight: 'bold',
+    flex: 1,
   },
   progressPercent: {
     color: colors.accent,
     fontSize: 16,
     fontWeight: '900',
+    marginLeft: 8,
   },
   progressBar: {
     height: 8,
@@ -293,32 +298,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.textSecondary,
     marginBottom: 8,
-    textAlign: 'right',
-  },
-  chapterChips: {
-    flexDirection: 'row-reverse',
-    gap: 8,
-    paddingVertical: 4,
-  },
-  chip: {
-    backgroundColor: colors.background,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.surfaceBorder,
-  },
-  chipSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.accent,
-  },
-  chipText: {
-    color: colors.textSecondary,
-    fontSize: 12,
-  },
-  chipTextSelected: {
-    color: '#FFF',
-    fontWeight: 'bold',
+    textAlign: 'left',
   },
   input: {
     backgroundColor: colors.background,
@@ -355,23 +335,27 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   switchRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginVertical: 18,
     gap: 12,
   },
-  switchLabel: {
-    flex: 1,
-    fontSize: 12,
+  switchTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+  },
+  switchSub: {
+    fontSize: 11,
     color: colors.textSecondary,
-    textAlign: 'right',
+    marginTop: 2,
   },
   uploadBtn: {
     backgroundColor: colors.primary,
     height: 50,
     borderRadius: 12,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,

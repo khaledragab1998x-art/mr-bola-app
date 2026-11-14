@@ -40,7 +40,7 @@ export default function LoginScreen({ navigation }) {
     const cleanPassword = cleanCredential(password);
 
     if (!cleanEmail || !cleanPassword) {
-      Alert.alert('تنبيه', 'برجاء إدخال البريد الإلكتروني وكلمة المرور');
+      Alert.alert('Alert', 'Please enter your email and password');
       return;
     }
 
@@ -48,7 +48,7 @@ export default function LoginScreen({ navigation }) {
     try {
       await login(cleanEmail, cleanPassword);
     } catch (error) {
-      Alert.alert('فشل تسجيل الدخول', error.message || 'البريد أو كلمة المرور غير صحيحة');
+      Alert.alert('Login Failed', error.message || 'Incorrect email or password');
     } finally {
       setLoading(false);
     }
@@ -82,18 +82,16 @@ export default function LoginScreen({ navigation }) {
             />
           </View>
 
-
-          <Text style={styles.brandSubtitle}>فيزياء المرحلة الثانوية • الفيزياء بفهم وإتقان</Text>
-
+          <Text style={styles.brandSubtitle}>Secondary Physics • Master Physics with Deep Understanding</Text>
         </View>
 
         {/* Login Card */}
         <View style={styles.card}>
-          <Text style={styles.cardHeader}>تسجيل الدخول</Text>
+          <Text style={styles.cardHeader}>Sign In</Text>
 
           {/* Email Input */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>البريد الإلكتروني</Text>
+            <Text style={styles.label}>Email Address</Text>
             <View style={styles.inputWrap}>
               <Ionicons name="mail-outline" size={20} color={colors.textSecondary} style={styles.inputIcon} />
               <TextInput
@@ -106,24 +104,18 @@ export default function LoginScreen({ navigation }) {
                 autoCapitalize="none"
                 autoCorrect={false}
                 spellCheck={false}
-                textAlign="right"
+                textAlign="left"
               />
             </View>
           </View>
 
           {/* Password Input */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>كلمة المرور</Text>
+            <Text style={styles.label}>Password</Text>
             <View style={styles.inputWrap}>
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
-                <Ionicons
-                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                  size={20}
-                  color={colors.textSecondary}
-                />
-              </TouchableOpacity>
+              <Ionicons name="lock-closed-outline" size={20} color={colors.textSecondary} style={styles.inputIcon} />
               <TextInput
-                style={[styles.input, { paddingLeft: 40 }]}
+                style={styles.input}
                 placeholder="••••••••"
                 placeholderTextColor={colors.textMuted}
                 value={password}
@@ -132,9 +124,15 @@ export default function LoginScreen({ navigation }) {
                 autoCapitalize="none"
                 autoCorrect={false}
                 spellCheck={false}
-                textAlign="right"
+                textAlign="left"
               />
-              <Ionicons name="lock-closed-outline" size={20} color={colors.textSecondary} style={styles.inputIcon} />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
+                <Ionicons
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={20}
+                  color={colors.textSecondary}
+                />
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -148,16 +146,16 @@ export default function LoginScreen({ navigation }) {
             {loading ? (
               <ActivityIndicator color="#FFF" />
             ) : (
-              <Text style={styles.loginBtnText}>تسجيل دخول</Text>
+              <Text style={styles.loginBtnText}>Sign In</Text>
             )}
           </TouchableOpacity>
 
           {/* Register Link */}
           <View style={styles.registerLinkWrap}>
+            <Text style={styles.noAccountText}>Don't have an account?</Text>
             <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.registerLinkText}>إنشاء حساب طالب جديد</Text>
+              <Text style={styles.registerLinkText}>Create Account</Text>
             </TouchableOpacity>
-            <Text style={styles.noAccountText}>ليس لديك حساب بعد؟</Text>
           </View>
         </View>
 
@@ -169,7 +167,7 @@ export default function LoginScreen({ navigation }) {
             activeOpacity={0.7}
           >
             <Ionicons name="shield-checkmark-outline" size={16} color={colors.primaryLight} />
-            <Text style={styles.adminQuickBtnText}>ملء بيانات حساب مستر بولا (Admin)</Text>
+            <Text style={styles.adminQuickBtnText}>Quick Fill Admin (Mr.Poula Malak)</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -275,7 +273,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.textPrimary,
     marginBottom: 20,
-    textAlign: 'right',
+    textAlign: 'left',
   },
   inputGroup: {
     marginBottom: 16,
@@ -284,11 +282,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
     marginBottom: 6,
-    textAlign: 'right',
+    textAlign: 'left',
     fontWeight: '600',
   },
   inputWrap: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.background,
     borderRadius: 12,
@@ -296,9 +294,10 @@ const styles = StyleSheet.create({
     borderColor: colors.surfaceBorder,
     paddingHorizontal: 12,
     height: 48,
+    gap: 8,
   },
   inputIcon: {
-    marginLeft: 8,
+    marginRight: 4,
   },
   eyeBtn: {
     padding: 4,
@@ -330,7 +329,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   registerLinkWrap: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 18,
@@ -346,14 +345,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   quickAccessRow: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     gap: 10,
     marginTop: 20,
     width: '100%',
   },
   quickBtn: {
     flex: 1,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(28, 37, 65, 0.7)',
@@ -371,7 +370,7 @@ const styles = StyleSheet.create({
   },
   adminQuickBtn: {
     flex: 1,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(56, 189, 248, 0.08)',

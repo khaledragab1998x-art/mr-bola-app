@@ -56,6 +56,40 @@ export async function deleteChapterApi(chapterId) {
   });
 }
 
+// PDF Management for Lessons
+export async function uploadLessonPdfApi(lessonId, formData) {
+  return apiRequest(`/api/admin/lessons/${lessonId}/pdf`, {
+    method: 'POST',
+    body: formData,
+  });
+}
+
+export async function deleteLessonPdfApi(lessonId) {
+  return apiRequest(`/api/admin/lessons/${lessonId}/pdf`, {
+    method: 'DELETE',
+  });
+}
+
+// Lesson Unlock Codes Management
+export async function getLessonCodesApi(lessonId) {
+  return apiRequest(`/api/admin/lessons/${lessonId}/codes`, {
+    method: 'GET',
+  });
+}
+
+export async function generateLessonCodesApi(lessonId, count = 10, prefix = 'MP') {
+  return apiRequest(`/api/admin/lessons/${lessonId}/codes/generate`, {
+    method: 'POST',
+    body: JSON.stringify({ count, prefix }),
+  });
+}
+
+export async function deleteLessonCodeApi(codeId) {
+  return apiRequest(`/api/admin/codes/${codeId}`, {
+    method: 'DELETE',
+  });
+}
+
 // ============================================
 // Exams & Questions
 // ============================================

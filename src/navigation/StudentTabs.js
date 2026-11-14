@@ -53,7 +53,7 @@ export default function StudentTabs() {
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarLabel: 'الرئيسية',
+          tabBarLabel: 'Home',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size - 2} color={color} />
           ),
@@ -63,7 +63,7 @@ export default function StudentTabs() {
         name="Courses"
         component={CoursesScreen}
         options={{
-          tabBarLabel: 'الكورسات',
+          tabBarLabel: 'Courses',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="school-outline" size={size - 2} color={color} />
           ),
@@ -73,7 +73,7 @@ export default function StudentTabs() {
         name="Lessons"
         component={LessonsScreen}
         options={{
-          tabBarLabel: 'الحصص',
+          tabBarLabel: 'Lessons',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="play-circle-outline" size={size - 2} color={color} />
           ),
@@ -83,7 +83,7 @@ export default function StudentTabs() {
         name="Exams"
         component={ExamsScreen}
         options={{
-          tabBarLabel: 'الامتحانات',
+          tabBarLabel: 'Exams',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="document-text-outline" size={size - 2} color={color} />
           ),
@@ -93,7 +93,7 @@ export default function StudentTabs() {
         name="Profile"
         component={ProfileScreen}
         options={{
-          tabBarLabel: 'حسابي',
+          tabBarLabel: 'Profile',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size - 2} color={color} />
           ),

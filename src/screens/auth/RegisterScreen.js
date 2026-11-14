@@ -41,21 +41,20 @@ export default function RegisterScreen({ navigation }) {
     const cleanPassword = cleanCredential(password);
 
     if (!cleanName || !cleanEmail || !cleanPhone || !cleanPassword) {
-      Alert.alert('تنبيه', 'برجاء ملء جميع البيانات المطلوبة');
+      Alert.alert('Alert', 'Please fill in all required fields');
       return;
     }
 
     if (cleanPassword.length < 6) {
-      Alert.alert('تنبيه', 'يجب أن لا تقل كلمة المرور عن 6 أحرف أو أرقام');
+      Alert.alert('Alert', 'Password must be at least 6 characters');
       return;
     }
 
     setLoading(true);
     try {
       await register(cleanName, cleanEmail, cleanPassword, cleanPhone);
-      // RootNavigator automatically redirects to StudentTabs and persists session
     } catch (error) {
-      Alert.alert('فشل إنشاء الحساب', error.message || 'حدث خطأ أثناء التسجيل');
+      Alert.alert('Registration Failed', error.message || 'An error occurred during registration');
       setLoading(false);
     }
   }
@@ -69,11 +68,11 @@ export default function RegisterScreen({ navigation }) {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Ionicons name="arrow-forward" size={24} color={colors.textPrimary} />
+            <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
           </TouchableOpacity>
           <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle}>تسجيل طالب جديد</Text>
-            <Text style={styles.headerSubtitle}>مستر بولا ملاك</Text>
+            <Text style={styles.headerTitle}>New Student Registration</Text>
+            <Text style={styles.headerSubtitle}>Mr.Poula Malak - Physics</Text>
           </View>
           <View style={styles.headerLogoWrap}>
             <Image
@@ -88,7 +87,7 @@ export default function RegisterScreen({ navigation }) {
         <View style={styles.noticeBox}>
           <Ionicons name="information-circle-outline" size={20} color={colors.primaryLight} />
           <Text style={styles.noticeText}>
-            أدخل بريدك الإلكتروني بدقة لتلقي كود التحقق ومتابعة درجاتك في الفيزياء
+            Enter your email accurately to receive exam updates and track your physics learning.
           </Text>
         </View>
 
@@ -96,23 +95,23 @@ export default function RegisterScreen({ navigation }) {
         <View style={styles.card}>
           {/* Full Name */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>الاسم بالكامل (ثلاثي أو رباعي)</Text>
+            <Text style={styles.label}>Full Name</Text>
             <View style={styles.inputWrap}>
               <Ionicons name="person-outline" size={20} color={colors.textSecondary} style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="مثال: أحمد محمد علي"
+                placeholder="e.g. John Smith"
                 placeholderTextColor={colors.textMuted}
                 value={name}
                 onChangeText={setName}
-                textAlign="right"
+                textAlign="left"
               />
             </View>
           </View>
 
           {/* Email */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>البريد الإلكتروني</Text>
+            <Text style={styles.label}>Email Address</Text>
             <View style={styles.inputWrap}>
               <Ionicons name="mail-outline" size={20} color={colors.textSecondary} style={styles.inputIcon} />
               <TextInput
@@ -125,14 +124,14 @@ export default function RegisterScreen({ navigation }) {
                 autoCapitalize="none"
                 autoCorrect={false}
                 spellCheck={false}
-                textAlign="right"
+                textAlign="left"
               />
             </View>
           </View>
 
           {/* Phone */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>رقم الهاتف / واتساب</Text>
+            <Text style={styles.label}>Phone / WhatsApp Number</Text>
             <View style={styles.inputWrap}>
               <Ionicons name="call-outline" size={20} color={colors.textSecondary} style={styles.inputIcon} />
               <TextInput
@@ -144,24 +143,18 @@ export default function RegisterScreen({ navigation }) {
                 keyboardType="phone-pad"
                 autoCorrect={false}
                 spellCheck={false}
-                textAlign="right"
+                textAlign="left"
               />
             </View>
           </View>
 
           {/* Password */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>كلمة المرور</Text>
+            <Text style={styles.label}>Password</Text>
             <View style={styles.inputWrap}>
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
-                <Ionicons
-                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                  size={20}
-                  color={colors.textSecondary}
-                />
-              </TouchableOpacity>
+              <Ionicons name="lock-closed-outline" size={20} color={colors.textSecondary} style={styles.inputIcon} />
               <TextInput
-                style={[styles.input, { paddingLeft: 40 }]}
+                style={styles.input}
                 placeholder="••••••••"
                 placeholderTextColor={colors.textMuted}
                 value={password}
@@ -170,9 +163,15 @@ export default function RegisterScreen({ navigation }) {
                 autoCapitalize="none"
                 autoCorrect={false}
                 spellCheck={false}
-                textAlign="right"
+                textAlign="left"
               />
-              <Ionicons name="lock-closed-outline" size={20} color={colors.textSecondary} style={styles.inputIcon} />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
+                <Ionicons
+                  name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                  size={20}
+                  color={colors.textSecondary}
+                />
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -186,14 +185,14 @@ export default function RegisterScreen({ navigation }) {
             {loading ? (
               <ActivityIndicator color="#FFF" />
             ) : (
-              <Text style={styles.registerBtnText}>إنشاء الحساب والمتابعة</Text>
+              <Text style={styles.registerBtnText}>Create Account & Continue</Text>
             )}
           </TouchableOpacity>
 
           {/* Back to Login */}
           <TouchableOpacity style={styles.loginLink} onPress={() => navigation.navigate('Login')}>
             <Text style={styles.loginLinkText}>
-              لديك حساب بالفعل؟ <Text style={{ color: colors.primaryLight, fontWeight: 'bold' }}>تسجيل الدخول</Text>
+              Already have an account? <Text style={{ color: colors.primaryLight, fontWeight: 'bold' }}>Sign In</Text>
             </Text>
           </TouchableOpacity>
         </View>
@@ -212,7 +211,7 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
   header: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 20,
@@ -238,7 +237,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: colors.textPrimary,
   },
@@ -249,7 +248,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   noticeBox: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(2, 132, 199, 0.12)',
     padding: 12,
@@ -263,7 +262,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.textSecondary,
     fontSize: 12,
-    textAlign: 'right',
+    textAlign: 'left',
     lineHeight: 18,
   },
   card: {
@@ -284,11 +283,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
     marginBottom: 6,
-    textAlign: 'right',
+    textAlign: 'left',
     fontWeight: '600',
   },
   inputWrap: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.background,
     borderRadius: 12,
@@ -296,9 +295,10 @@ const styles = StyleSheet.create({
     borderColor: colors.surfaceBorder,
     paddingHorizontal: 12,
     height: 48,
+    gap: 8,
   },
   inputIcon: {
-    marginLeft: 8,
+    marginRight: 4,
   },
   eyeBtn: {
     padding: 4,

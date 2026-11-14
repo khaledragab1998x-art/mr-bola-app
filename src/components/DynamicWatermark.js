@@ -35,10 +35,10 @@ export default function DynamicWatermark({ studentName, studentPhone, studentId 
       ]}
     >
       <Text style={styles.watermarkText}>
-        {studentName || 'طالب'} • {studentPhone || ''}
+        {studentName || 'Student'} • {studentPhone || ''}
       </Text>
       <Text style={styles.watermarkSubText}>
-        ID: #{studentId || '000'} • منصة مستر بولا
+        ID: #{studentId || '000'} • Mr.Poula Malak
       </Text>
     </View>
   );

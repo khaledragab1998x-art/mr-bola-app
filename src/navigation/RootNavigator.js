@@ -30,7 +30,7 @@ export default function RootNavigator() {
   const { user, token, loading } = useAuth();
 
   if (loading) {
-    return <EntranceSplash message="جاري تجهيز المنصة التعليمية..." />;
+    return <EntranceSplash message="Loading learning platform..." />;
   }
 
   return (

@@ -37,7 +37,7 @@ export default function ExamTakingScreen({ route, navigation }) {
       try {
         const [examRes, url] = await Promise.all([
           getExamForTakingApi(examId),
-          getServerUrl()
+          getServerUrl(),
         ]);
 
         setBaseUrl(url);
@@ -48,9 +48,9 @@ export default function ExamTakingScreen({ route, navigation }) {
         }
       } catch (err) {
         Alert.alert(
-          'تنبيه',
-          err.message || 'تعذر تحميل الامتحان. ربما قمت بإنهاء هذا الامتحان مسبقاً.',
-          [{ text: 'حسناً', onPress: () => navigation.goBack() }]
+          'Notice',
+          err.message || 'Could not load exam. You may have already completed it.',
+          [{ text: 'OK', onPress: () => navigation.goBack() }]
         );
       } finally {
         setLoading(false);
@@ -78,7 +78,7 @@ export default function ExamTakingScreen({ route, navigation }) {
     return () => clearInterval(timer);
   }, [loading, examData, timeLeftSeconds]);
 
-  // 3. Anti-Cheat: App State Listener (Detects minimizing app or opening other apps)
+  // 3. Anti-Cheat: App State Listener
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (
@@ -105,14 +105,14 @@ export default function ExamTakingScreen({ route, navigation }) {
 
     if (newCount >= 3) {
       Alert.alert(
-        '🚨 مخالفة أمنية!',
-        'تم رصد مغادرتك لشاشة الامتحان للمرة الثالثة. سيتم تسليم إجاباتك الحالية تلقائياً لمنع الغش.',
-        [{ text: 'موافق', onPress: () => handleAutoSubmit('cheating_violation') }]
+        '🚨 Security Violation!',
+        'You have left or minimized the exam screen 3 times. Your exam is being automatically submitted to prevent cheating.',
+        [{ text: 'OK', onPress: () => handleAutoSubmit('cheating_violation') }]
       );
     } else {
       Alert.alert(
-        '⚠️ إنذار غش ومغادرة!',
-        `ممنوع تصغير التطبيق أو مغادرة الامتحان!\n• رقم الإنذار: (${newCount} من 3)\n• في حال التكرار للمرة الثالثة سيتم إنهاء الامتحان تلقائياً.`
+        '⚠️ Anti-Cheat Warning!',
+        `Minimizing or leaving the exam screen is strictly prohibited!\n• Warning: (${newCount} of 3)\n• On the 3rd warning, your exam will be auto-submitted.`
       );
     }
   }
@@ -135,11 +135,11 @@ export default function ExamTakingScreen({ route, navigation }) {
     const totalQuestions = examData?.questions?.length || 0;
 
     Alert.alert(
-      'تسليم الامتحان',
-      `أجبت عن (${answeredCount} من ${totalQuestions}) سؤال.\nهل أنت متأكد من رغبتك في تسليم الامتحان ورصد الدرجة؟`,
+      'Submit Exam',
+      `You answered (${answeredCount} of ${totalQuestions}) questions.\nAre you sure you want to finish and submit your exam now?`,
       [
-        { text: 'تسليم الآن', onPress: () => doSubmit() },
-        { text: 'متابعة الحل', style: 'cancel' }
+        { text: 'Submit Now', onPress: () => doSubmit() },
+        { text: 'Continue Exam', style: 'cancel' },
       ]
     );
   }
@@ -168,7 +168,7 @@ export default function ExamTakingScreen({ route, navigation }) {
         });
       }
     } catch (error) {
-      Alert.alert('خطأ', error.message || 'فشل تسليم الامتحان');
+      Alert.alert('Error', error.message || 'Failed to submit exam');
       setSubmitting(false);
     }
   }
@@ -182,7 +182,7 @@ export default function ExamTakingScreen({ route, navigation }) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={colors.primaryLight} />
-        <Text style={styles.loadingText}>جاري تجهيز أسئلة الامتحان...</Text>
+        <Text style={styles.loadingText}>Preparing exam questions...</Text>
       </View>
     );
   }
@@ -190,6 +190,7 @@ export default function ExamTakingScreen({ route, navigation }) {
   const questions = examData?.questions || [];
   const currentQuestion = questions[currentIndex];
   const isLastQuestion = currentIndex === questions.length - 1;
+  const isTrueFalse = currentQuestion?.question_type === 'true_false';
 
   return (
     <View style={styles.container}>
@@ -203,7 +204,7 @@ export default function ExamTakingScreen({ route, navigation }) {
         </View>
 
         <Text style={styles.examTitleText} numberOfLines={1}>
-          {examData?.title}
+          {examData?.title || title}
         </Text>
 
         {violations > 0 ? (
@@ -219,7 +220,7 @@ export default function ExamTakingScreen({ route, navigation }) {
         <View
           style={[
             styles.progressBarFill,
-            { width: `${((currentIndex + 1) / questions.length) * 100}%` },
+            { width: `${((currentIndex + 1) / Math.max(1, questions.length)) * 100}%` },
           ]}
         />
       </View>
@@ -228,10 +229,10 @@ export default function ExamTakingScreen({ route, navigation }) {
         {/* Question Counter Card */}
         <View style={styles.questionNavCard}>
           <Text style={styles.questionIndexText}>
-            السؤال رقم <Text style={{ color: colors.primaryLight, fontSize: 18 }}>{currentIndex + 1}</Text> من {questions.length}
+            Question <Text style={{ color: colors.primaryLight, fontSize: 18 }}>{currentIndex + 1}</Text> of {questions.length}
           </Text>
           <View style={styles.marksBadge}>
-            <Text style={styles.marksText}>{currentQuestion?.marks || 1} درجة</Text>
+            <Text style={styles.marksText}>{currentQuestion?.marks || 1} pt{currentQuestion?.marks > 1 ? 's' : ''}</Text>
           </View>
         </View>
 
@@ -253,34 +254,81 @@ export default function ExamTakingScreen({ route, navigation }) {
 
         {/* Choices List */}
         <View style={styles.choicesSection}>
-          <Text style={styles.choicesHeading}>اختر الإجابة الصحيحة:</Text>
+          <Text style={styles.choicesHeading}>Select the correct answer:</Text>
 
-          {currentQuestion?.choices?.map((choice, idx) => {
-            const isSelected = answers[currentQuestion.id] === choice.id;
-            const letters = ['أ', 'ب', 'ج', 'د', 'هـ'];
-            const letter = letters[idx] || (idx + 1);
+          {isTrueFalse ? (
+            /* True / False layout */
+            <View style={styles.tfChoicesWrap}>
+              {currentQuestion?.choices?.map((choice) => {
+                const isSelected = answers[currentQuestion.id] === choice.id;
+                const lowerText = (choice.choice_text || '').toLowerCase();
+                const isTrue = lowerText.includes('true') || lowerText.includes('صح');
 
-            return (
-              <TouchableOpacity
-                key={choice.id}
-                style={[styles.choiceCard, isSelected && styles.choiceCardSelected]}
-                onPress={() => handleSelectChoice(currentQuestion.id, choice.id)}
-                activeOpacity={0.8}
-              >
-                <View style={styles.choiceTextWrap}>
-                  <Text style={[styles.choiceText, isSelected && styles.choiceTextSelected]}>
-                    {choice.choice_text}
-                  </Text>
-                </View>
+                return (
+                  <TouchableOpacity
+                    key={choice.id}
+                    style={[
+                      styles.tfStudentCard,
+                      isSelected && (isTrue ? styles.tfStudentCardTrueSelected : styles.tfStudentCardFalseSelected),
+                    ]}
+                    onPress={() => handleSelectChoice(currentQuestion.id, choice.id)}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons
+                      name={
+                        isTrue
+                          ? isSelected ? 'checkmark-circle' : 'checkmark-circle-outline'
+                          : isSelected ? 'close-circle' : 'close-circle-outline'
+                      }
+                      size={28}
+                      color={isSelected ? (isTrue ? colors.success : colors.danger) : colors.textMuted}
+                    />
+                    <Text
+                      style={[
+                        styles.tfStudentCardText,
+                        isSelected && { color: isTrue ? colors.success : colors.danger, fontWeight: 'bold' },
+                      ]}
+                    >
+                      {isTrue ? 'True' : 'False'}
+                    </Text>
+                    {isSelected && (
+                      <View style={[styles.selectedPill, { backgroundColor: isTrue ? colors.success : colors.danger }]}>
+                        <Text style={styles.selectedPillText}>Selected</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          ) : (
+            /* Standard MCQ layout */
+            currentQuestion?.choices?.map((choice, idx) => {
+              const isSelected = answers[currentQuestion.id] === choice.id;
+              const letters = ['A', 'B', 'C', 'D', 'E'];
+              const letter = letters[idx] || (idx + 1);
 
-                <View style={[styles.radioCircle, isSelected && styles.radioCircleSelected]}>
-                  <Text style={[styles.letterText, isSelected && styles.letterTextSelected]}>
-                    {letter}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
+              return (
+                <TouchableOpacity
+                  key={choice.id}
+                  style={[styles.choiceCard, isSelected && styles.choiceCardSelected]}
+                  onPress={() => handleSelectChoice(currentQuestion.id, choice.id)}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.radioCircle, isSelected && styles.radioCircleSelected]}>
+                    <Text style={[styles.letterText, isSelected && styles.letterTextSelected]}>
+                      {letter}
+                    </Text>
+                  </View>
+
+                  <View style={styles.choiceTextWrap}>
+                    <Text style={[styles.choiceText, isSelected && styles.choiceTextSelected]}>
+                      {choice.choice_text}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })
+          )}
         </View>
       </ScrollView>
 
@@ -291,8 +339,8 @@ export default function ExamTakingScreen({ route, navigation }) {
           onPress={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
           disabled={currentIndex === 0}
         >
-          <Ionicons name="arrow-forward" size={18} color="#FFF" />
-          <Text style={styles.navBtnText}>السابق</Text>
+          <Ionicons name="arrow-back" size={18} color="#FFF" />
+          <Text style={styles.navBtnText}>Previous</Text>
         </TouchableOpacity>
 
         {isLastQuestion ? (
@@ -305,7 +353,7 @@ export default function ExamTakingScreen({ route, navigation }) {
               <ActivityIndicator color="#FFF" size="small" />
             ) : (
               <>
-                <Text style={styles.submitBtnText}>تسليم الامتحان</Text>
+                <Text style={styles.submitBtnText}>Submit Exam</Text>
                 <Ionicons name="checkmark-done" size={18} color="#FFF" />
               </>
             )}
@@ -315,8 +363,8 @@ export default function ExamTakingScreen({ route, navigation }) {
             style={styles.navBtn}
             onPress={() => setCurrentIndex((prev) => Math.min(questions.length - 1, prev + 1))}
           >
-            <Text style={styles.navBtnText}>التالي</Text>
-            <Ionicons name="arrow-back" size={18} color="#FFF" />
+            <Text style={styles.navBtnText}>Next</Text>
+            <Ionicons name="arrow-forward" size={18} color="#FFF" />
           </TouchableOpacity>
         )}
       </View>
@@ -341,7 +389,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   examHeader: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
@@ -357,10 +405,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
     color: colors.textPrimary,
-    textAlign: 'right',
+    textAlign: 'center',
   },
   timerBadge: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(28, 37, 65, 0.8)',
     paddingHorizontal: 10,
@@ -404,7 +452,7 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   questionNavCard: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 14,
@@ -439,7 +487,7 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontSize: 16,
     lineHeight: 26,
-    textAlign: 'right',
+    textAlign: 'left',
     fontWeight: '600',
   },
   imageContainer: {
@@ -460,12 +508,52 @@ const styles = StyleSheet.create({
   choicesHeading: {
     color: colors.textSecondary,
     fontSize: 13,
-    textAlign: 'right',
+    textAlign: 'left',
     marginBottom: 4,
     fontWeight: 'bold',
   },
+  // True / False Student Choice Cards
+  tfChoicesWrap: {
+    gap: 12,
+  },
+  tfStudentCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    padding: 16,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: colors.surfaceBorder,
+    gap: 14,
+  },
+  tfStudentCardTrueSelected: {
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    borderColor: colors.success,
+  },
+  tfStudentCardFalseSelected: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderColor: colors.danger,
+  },
+  tfStudentCardText: {
+    flex: 1,
+    color: colors.textPrimary,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  selectedPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  selectedPillText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+
+  // MCQ Choice Card
   choiceCard: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
     padding: 14,
@@ -502,12 +590,11 @@ const styles = StyleSheet.create({
   },
   choiceTextWrap: {
     flex: 1,
-    alignItems: 'flex-end',
   },
   choiceText: {
     color: colors.textPrimary,
     fontSize: 14,
-    textAlign: 'right',
+    textAlign: 'left',
     lineHeight: 22,
   },
   choiceTextSelected: {
@@ -515,7 +602,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   bottomBar: {
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 16,
     backgroundColor: colors.surface,
@@ -525,7 +612,7 @@ const styles = StyleSheet.create({
   },
   navBtn: {
     flex: 1,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.surfaceLight,
@@ -545,7 +632,7 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     flex: 1,
-    flexDirection: 'row-reverse',
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.success,
